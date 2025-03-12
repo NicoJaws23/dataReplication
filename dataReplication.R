@@ -93,26 +93,46 @@ plot.igraph(s3G,
 #rate of grooming other) betweenness, eigenvector centrality, local clustering coefficient
 
 #In-degree & Out-degree
-s1IO <- data.frame(In = igraph::degree(s1G, mode = "in"), Out = igraph::degree(s1G, mode = "out"))
-s2IO <- data.frame(In = igraph::degree(s2G, mode = "in"), Out = igraph::degree(s2G, mode = "out"))
-s3IO <- data.frame(In = igraph::degree(s3G, mode = "in"), Out = igraph::degree(s3G, mode = "out"))
+s1IO <- data.frame(ID = elo$ID, Sex = elo$Sex, In = igraph::degree(s1G, mode = "in"), Out = igraph::degree(s1G, mode = "out"), Season = 1, row.names = NULL)
+s2IO <- data.frame(ID = elo$ID, Sex = elo$Sex, In = igraph::degree(s2G, mode = "in"), Out = igraph::degree(s2G, mode = "out"), Season = 2, row.names = NULL)
+s3IO <- data.frame(ID = elo$ID, Sex = elo$Sex, In = igraph::degree(s3G, mode = "in"), Out = igraph::degree(s3G, mode = "out"), Season = 3, row.names = NULL)
+IO <- bind_rows(list(s1IO, s2IO, s3IO))
 
 #In-strength & Out-Strength
-s1S <- data.frame(In = igraph::strength(s1G, mode = "in"), Out = igraph::strength(s1G, mode = "out"))
-s2S <- data.frame(In = igraph::strength(s2G, mode = "in"), Out = igraph::strength(s2G, mode = "out"))
-s3S <- data.frame(In = igraph::strength(s3G, mode = "in"), Out = igraph::strength(s3G, mode = "out"))
+s1S <- data.frame(ID = elo$ID, Sex = elo$Sex, In = igraph::strength(s1G, mode = "in"), Out = igraph::strength(s1G, mode = "out"), Season = 1, row.names = NULL)
+s2S <- data.frame(ID = elo$ID, Sex = elo$Sex, In = igraph::strength(s2G, mode = "in"), Out = igraph::strength(s2G, mode = "out"), Season = 1, row.names = NULL)
+s3S <- data.frame(ID = elo$ID, Sex = elo$Sex, In = igraph::strength(s3G, mode = "in"), Out = igraph::strength(s3G, mode = "out"), Season = 1, row.names = NULL)
+strength <- bind_rows(list(s1S, s2S, s3S))
 
 #Betweenness
-s1B <- betweenness.estimate(s1G, cutoff = -1)
-s2B <- betweenness.estimate(s2G, cutoff = -1)
-s3B <- betweenness.estimate(s3G, cutoff = -1)
+s1B <- data.frame(ID = elo$ID, Sex = elo$Sex, bt = betweenness.estimate(s1G, cutoff = -1), Season = 1, row.names = NULL)
+s2B <- data.frame(ID = elo$ID, Sex = elo$Sex, bt = betweenness.estimate(s2G, cutoff = -1), Season = 2, row.names = NULL)
+s3B <- data.frame(ID = elo$ID, Sex = elo$Sex, bt = betweenness.estimate(s3G, cutoff = -1), Season = 3, row.names = NULL)
+b <- bind_rows(list(s1B, s2B, s3B))
 
 #Eigenvector centrality
-s1E <- eigen_centrality(s1G)
-s2E <- eigen_centrality(s2G)
-s3E <- eigen_centrality(s3G)
+s1E <- data.frame(ID = elo$ID, Sex = elo$Sex, EC = eigen_centrality(s1G), Season = 1, row.names = NULL)
+s2E <- data.frame(ID = elo$ID, Sex = elo$Sex, EC = eigen_centrality(s2G), Season = 2, row.names = NULL)
+s3E <- data.frame(ID = elo$ID, Sex = elo$Sex, EC = eigen_centrality(s3G), Season = 3, row.names = NULL)
+EC <- bind_rows(list(s1E, s2E, s3E))
 
 #Clustering coefficient
-s1CC <- igraph::transitivity(s1G, type = "local")
-s2CC <- igraph::transitivity(s2G, type = "local")
-s3CC <- igraph::transitivity(s3G, type = "local")
+s1CC <- data.frame(ID = elo$ID, Sex = elo$Sex, CC = igraph::transitivity(s1G, type = "local"), Season = 1, row.names = NULL)
+s2CC <- data.frame(ID = elo$ID, Sex = elo$Sex, CC = igraph::transitivity(s2G, type = "local"), Season = 2, row.names = NULL)
+s3CC <- data.frame(ID = elo$ID, Sex = elo$Sex, CC = igraph::transitivity(s3G, type = "local"), Season = 3, row.names = NULL)
+CC <- bind_rows(list(s1CC, s2CC, s3CC))
+#Convert ELO scores to ranks
+#Might already have this
+
+
+#Stats: Looking for consistency ofsocial network metrics
+#across season by calculating repeatability for each metric
+#with both sexes combined and separatly (MF, M, F)
+#Season was a random effect, all repeatability estimates
+#are "adjusted repeatabilities". Repeatability was calculated
+#as the (variance of random individual effect)/(sum of random
+#individual effect variance and the residual (within individual variance))
+#rep = var(random indiv effect)/sum(var(random indiv effect) + var(residual))
+#FOR MALES ONLY: out-strength and eigenvectors were log-transformed
+#FOR BETWEENNESS: GLMMs w/ Poisson dist
+
