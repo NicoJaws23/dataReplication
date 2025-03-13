@@ -44,7 +44,7 @@ plot.igraph(s1G,
             vertex.shape = "circle",
             vertex.size = 15,
             vertex.color = V(s1G)$color,
-            vertex.label = "",
+            #vertex.label = "",
             edge.curved = .75)
 
 #Season 2
@@ -64,7 +64,7 @@ plot.igraph(s2G,
             vertex.shape = "circle",
             vertex.size = 15,
             vertex.color = V(s1G)$color,
-            vertex.label = "",
+            #vertex.label = "",
             edge.curved = .75)
 
 #Season 3
@@ -84,7 +84,7 @@ plot.igraph(s3G,
             vertex.shape = "circle",
             vertex.size = 15,
             vertex.color = V(s1G)$color,
-            vertex.label = "",
+            #vertex.label = "",
             edge.curved = .75)
 
 #Calculating 7 per season individual network metrics
