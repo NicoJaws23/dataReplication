@@ -40,7 +40,7 @@ V(s1G)$color <- sapply(V(s1G)$name, function(name) {
   }
 })
 
-plot.igraph(s1G, 
+s1p <- plot.igraph(s1G, 
             vertex.shape = "circle",
             vertex.size = 15,
             vertex.color = V(s1G)$color,
@@ -60,7 +60,7 @@ V(s2G)$color <- sapply(V(s2G)$name, function(name) {
   }
 })
 
-plot.igraph(s2G, 
+s2p <- plot.igraph(s2G, 
             vertex.shape = "circle",
             vertex.size = 15,
             vertex.color = V(s1G)$color,
@@ -80,7 +80,7 @@ V(s3G)$color <- sapply(V(s3G)$name, function(name) {
   }
 })
 
-plot.igraph(s3G, 
+s3p <- plot.igraph(s3G, 
             vertex.shape = "circle",
             vertex.size = 15,
             vertex.color = V(s1G)$color,
@@ -456,8 +456,38 @@ summary(btM_Males_rank_glmm)
 
 
 #Node Based Permutations
+#Shuffling IDs
+nodePerm <- function(df, modelForm, grname, nperm) {
+  m <- rpt(modelForm, grname, data = df, datatype = "Gaussian")
+  R <- m$R
+  perm <- data.frame(length=nperm)
+  for(i in 1:nperm){
+    Pdata <- df
+    Pdata$ID <- sample(Pdata$ID)
+    rptM <- rpt(modelForm, grname, data = Pdata, datatype = "Gaussian")
+    perm[[i]] <- rptM$R
+  }
+  return(list(R, perm))
+}
+
+#In-Degree & Out-degree
+permIn <- nodePerm(IO, modelForm = In ~ (1|ID) + (1|Season), grname = "ID", nperm = 1000)
+
+#In-strength & Out-strenght
 
 
+#Betweenness
 
 
+#Eigenvector
 
+
+#Clustering Coefficient
+
+
+#Spearman Corrleation
+network_metrics <- data.frame(In.Degree = IO$In, Out.Degree = IO$Out, In.Strength = strength$In,
+                              Out.Strength = strength$Out, Eigenvector = EC$EC.vector, 
+                              Cluster = CC$CC, Between = b$bt)
+spearCor <- cor(network_metrics, method = "spearman")
+spearCor
