@@ -2,15 +2,37 @@
 title: "dataReplication"
 format: html
 editor: visual
+toc: true
+toc-depth: 3
+toc-location: right
+toc-float: true
 ---
 
 # Data Replication Project: Replicating a Social Network Analysis
 
-### Based on "Consistency in social network position over changing environments in a seasonally breeding primate" by Maryjka B. Blaszczyk (2018, *Behavioral Ecology and Sociobiology, 72*(11), 10.1007/s00265-017-2425-y)
+[**Based on: Blaszczyk, M. B. (2018). Consistency in social network position over changing environments in a seasonally breeding primate. *Behavioral Ecology and Sociobiology*, *72*(1), 11. <https://doi.org/10.1007/s00265-017-2425-y>**]{.underline}
 
 ## Background
 
+### Aims
+
+The original study cited above aimed to investigate the consistency of social behavior in wild vervet monkeys (*Chlorocubus pygerthrus*) across three seasons, the breeding season, winter season, and birthing season. Blaszczyk created grooming networks for each season and measured the repeatability of seven network metrics (In-/Out-degree, In-/Out-strength, betweenness, eigenvector centrality, and clustering coefficient) along with the effects of sex and dominance rank on these metrics.
+
+### Data Used
+
+Blaszczyk used 20-minute continuous focal sampling to record grooming bouts lasting at least 5 seconds. The final data included who groomed and who was groomed, how long the grooming bout lasted, the total number of minutes the actor and receiver were seen, the total amount of time in seconds the same dyad was seen together, and grooming rate (grooming bout time/time dyad seen together). A different dataset was used for each season, resulting in three unique datasets characterizing grooming dyads for the group under study. Additionally, individuals' IDs, sex, and elo rating for each season was stored in a fourth dataset.
+
+### Analysis
+
+The initial analysis used function in the {igraph} package to construct grooming networks for each season. These networks were one directed and weighted based on grooming rate. {igraph} as also used to calculate the seven network metrics. Elo-ratings were calculated using the {EloRating} package and converted to ranks on the last day of each season (IDs_Sex_EloScores in OGData). To test the repeatability of each metric across seasons, linear mixed effects models (LMMs) were run using the {rptR} package. Models were run for the whole mixed sex sample (n = 26), females (n = 16), and males (n = 10) with season being a random effect. These models were also all run again with rank included as a fixed effect. Additionally, sex was used as a fixed effect for (G)LMMs to examine sex differences and the effects of dominance rank on all social network metrics. Node-based permutation tests with 1000 iterations were used on all metrics to evaluate the significance of repeatability. In order to test for the collinearity between each pair of metrics, Spearman rank correlation was used. All mixed models were fit with the {lme4} package.
+
+### Conclusions
+
+Blaszczyk found that, based on the repeatability of each network metric, vervet monkey social network position was consistent over the three seasons. Grooming in-strength, out-strength, eigenvector centrality, and in-degree were the most repeatable for both sexes. Betweenness showed no consistency across seasons for both sexes. Only males were consistent in out-degree and clustering coefficients.
+
 ## Tools
+
+First, we will load in the libraries with the functions we need to conduct the analysis
 
 ```{r}
 #| message: false
@@ -20,10 +42,11 @@ library(igraph)
 library(EloRating)
 library(rptR)
 library(lme4)
-library(sna)
 ```
 
 ## Data
+
+Next, we will load in the data using the raw links provided by github. The elo variable will hold the data with demographic details and elo rating, s1 will hold all the season 1 data, s2 will hold the season 2 data, and s3 will hold the season 3 data.
 
 ```{r}
 #| message: false
@@ -43,6 +66,8 @@ s3 <- read_csv(f3)
 
 ## Adjustments
 
+Next, we will make some adjustments to the original data. Considering that the analysis uses season as a random effect, we ill add a column which holds a value for the corresponding season. We will also have a name for the season held in another column along with columns which convert the groom time and dyad time to minutes. Finally, we will combine all the data into one data frame.
+
 ```{r}
 #| message: false
 #| warning: false
@@ -56,6 +81,8 @@ com <- bind_rows(list(s1, s2, s3))
 ```
 
 ## Plots
+
+Now will will plot each seasons social network. First, we need to define the edges for each network which we will store in a variable names sXEdges. This will be a data frame with the actor, recipient, and grooming rate. Next we will graph the social network using the graph_from_data_frame() function which will take out edges data as an argument along with setting directed to TRUE. In the original study, females are white circles while males are gray circles. To do this, we will call the colors of the vertices of the graph and set them to be based on vertices name which is based on each individuals ID. This will be linked to the elo table which has the sex of each individual which be used to assign the proper color to each vertex. Then, using the plot.igraph() function, we will plot the social network. This will be repeated for each season.
 
 ### Season 1
 
@@ -127,7 +154,7 @@ s3p <- plot.igraph(s3G,
             edge.curved = .75)
 ```
 
-## Metrics
+## Calculating Metrics
 
 ### In-Degree & Out-Degree
 
@@ -175,7 +202,7 @@ CC <- bind_rows(list(s1CC, s2CC, s3CC))
 
 ```
 
-## Models
+## Running Models
 
 ### In-Degree & Out-Degree
 
