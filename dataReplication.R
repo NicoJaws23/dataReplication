@@ -3,6 +3,8 @@ library(igraph)
 library(EloRating)
 library(rptR)
 library(lme4)
+library(ggplot2)
+library(cowplot)
 
 #Load in datasets
 f <- "https://raw.githubusercontent.com/NicoJaws23/dataReplication/refs/heads/main/IDs_Sex_EloScores.csv"
@@ -506,3 +508,41 @@ network_metrics <- data.frame(In.Degree = IO$In, Out.Degree = IO$Out, In.Strengt
                               Cluster = CC$CC, Between = b$bt)
 spearCor <- cor(network_metrics, method = "spearman")
 spearCor
+
+#Plotting metrics over time
+InDegreePlot <- ggplot(data = IO, mapping = aes(x = Season, y = In, color = ID)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  theme(aspect.ratio = 1)
+
+OutDegreePlot <- ggplot(data = IO, mapping = aes(x = Season, y = Out, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  theme(aspect.ratio = 1)
+
+InStrengthPlot <- ggplot(data = strength, mapping =aes(x= Season, y= In, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  theme(aspect.ratio = 1)
+
+OutStrengthPlot <- ggplot(data = strength, mapping = aes(x = Season, y = Out, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  theme(aspect.ratio = 1)
+
+betweenPlot <- ggplot(data = b, mapping = aes(x = Season, y = bt, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  theme(aspect.ratio = 1)
+
+eigenPlot <- ggplot(data = EC, mapping = aes(x = Season, y = EC.vector, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  theme(aspect.ratio = 1)
+
+clusterPlot <- ggplot(data = CC, mapping = aes(x = Season, y = CC, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  theme(aspect.ratio = 1)
+
+plot_grid(InDegreePlot, OutDegreePlot, InStrengthPlot, OutStrengthPlot, betweenPlot, eigenPlot, clusterPlot, nrow = 4, ncol = 2)
