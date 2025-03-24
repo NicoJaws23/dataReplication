@@ -201,7 +201,50 @@ s1CC <- data.frame(ID = elo$ID, Sex = elo$Sex, CC = igraph::transitivity(s1G, ty
 s2CC <- data.frame(ID = elo$ID, Sex = elo$Sex, CC = igraph::transitivity(s2G, type = "local"), Season = 2, rank = elo$Elo.Sep, row.names = NULL)
 s3CC <- data.frame(ID = elo$ID, Sex = elo$Sex, CC = igraph::transitivity(s3G, type = "local"), Season = 3, rank = elo$Elo.Dec, row.names = NULL)
 CC <- bind_rows(list(s1CC, s2CC, s3CC))
+```
 
+## Plotting Metrics
+
+Here I will use functions from {ggplot2} and {cowplot} to visualize the changes in each metric over the three season. This is meant to reflect the graphs in Figure 2 of the original study
+
+```{r}
+InDegreePlot <- ggplot(data = IO, mapping = aes(x = Season, y = In, color = ID)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  ggtitle("In-Degree")
+
+OutDegreePlot <- ggplot(data = IO, mapping = aes(x = Season, y = Out, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  ggtitle("Out-Degree")
+
+InStrengthPlot <- ggplot(data = strength, mapping =aes(x= Season, y= In, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  ggtitle("In-Strength")
+
+OutStrengthPlot <- ggplot(data = strength, mapping = aes(x = Season, y = Out, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  ggtitle("Out-Strength")
+
+betweenPlot <- ggplot(data = b, mapping = aes(x = Season, y = bt, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  ggtitle("Betweenness")
+
+eigenPlot <- ggplot(data = EC, mapping = aes(x = Season, y = EC.vector, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  ggtitle("Eigenvector Centrality")
+
+clusterPlot <- ggplot(data = CC, mapping = aes(x = Season, y = CC, color = ID)) +
+  geom_line()+
+  theme(legend.position = "none") +
+  ggtitle("Clustering Coefficient")
+
+cowplot <- plot_grid(InDegreePlot, OutDegreePlot, InStrengthPlot, OutStrengthPlot, betweenPlot, eigenPlot, clusterPlot, nrow = 3, ncol = 3)
+cowplot
 ```
 
 ## Running Models
@@ -534,6 +577,15 @@ ccM_Males_rank <- rpt(CC ~ rank + (1|ID) + (1|Season),
                  data = CC_Males,
                  datatype = "Gaussian")
 summary(ccM_Males_rank)
+```
+
+### Model Table
+
+Here I will create a table which will visualize the output values of each linear model based on how they are seen in Table 2 of the original paper
+
+```{r}
+metrics <- data.frame(Metric = c("In-Degree", "In-Degree", "In-Degree", "In-Degree", "In-Degree", "Out-Degree", "Out-Degree", "Out-Degree", "Out-Degree", "Out-Degree", "In-Strength", "In-Strength", "In-Strength", "In-Strength", "In-Strength", "Out-Strength", "Out-Strength", "Out-Strength", "Out-Strength", "Out-Strength", "Eigenvector Centrality", "Eigenvector Centrality", "Eigenvector Centrality", "Eigenvector Centrality", "Eigenvector Centrality", "Clustering Coefficient","Clustering Coefficient", "Clustering Coefficient", "Clustering Coefficient", "Clustering Coefficient", "Betweenness", "Betweenness", "Betweenness", "Betweenness", "Betweenness"), Sample = c("All", "Females", "Females-Rank", "Males", "Males-Rank", "All", "Females", "Females-Rank", "Males", "Males-Rank", "All", "Females", "Females-Rank", "Males", "Males-Rank", "All", "Females", "Females-Rank", "Males", "Males-Rank", "All", "Females", "Females-Rank", "Males", "Males-Rank", "All", "Females", "Females-Rank", "Males", "Males-Rank", "All", "Females", "Females-Rank", "Males", "Males-Rank"), R = c(IOm$R[1,1], IOmF$R[1,1], IOmF_rank$R[1,1], IOmM$R[1,1], IOmM_rank$R[1,1], IOmOut$R[1,1], ioOutFemales$R[1,1], ioOutFemales_rank$R[1,1], ioOutMales$R[1,1], ioOutMales_rank$R[1,1], inStrength$R[1,1], inStrengthF$R[1,1], inStrengthF_rank$R[1,1], inStrengthM$R[1,1], inStrengthM_rank$R[1,1], outStrength$R[1,1], outStrengthF$R[1,1], outStrengthF_rank$R[1,1], outStrengthM_log$R[1,1], outStrengthM_rank_log$R[1,1], egCent$R[1,1], egCentF$R[1,1], egCentF_rank$R[1,1], egCentM_log$R[1,1], egCentM_rank_log$R[1,1], ccM$R[1,1], ccM_Females$R[1,1], ccM_Females_rank$R[1,1], ccM_Males$R[1,1], ccM_Males_rank$R[1,1], btM$R[1,1], btM_Females$R[1,1], btM_Females_rank$R[1,1], btM_Males$R[1,1], btM_Males_rank$R[1,1]))
+
 ```
 
 ## Node-Based Permuation

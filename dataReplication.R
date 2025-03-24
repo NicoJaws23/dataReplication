@@ -146,6 +146,9 @@ IOm <- rpt(In ~ (1|ID) + (1|Season),
            data = IO,
            datatype = "Gaussian")
 summary(IOm)
+IOm$R
+IOm$CI_emp
+IOm$P$LRT_P
 IOmR <- rpt(In ~ rank + (1|ID) + (1|Season),
             grname = "ID",
             data = IO,
@@ -458,6 +461,7 @@ btM_glmm <- rptPoisson(bt ~ (1|ID) + (1|Season),
            grname = "ID",
            data = b)
 summary(btM_glmm)
+btM_glmm$R$ID[1]
 #Females
 bFemales <- b |>
   filter(Sex == "F")
@@ -513,36 +517,37 @@ spearCor
 InDegreePlot <- ggplot(data = IO, mapping = aes(x = Season, y = In, color = ID)) +
   geom_line() +
   theme(legend.position = "none") +
-  theme(aspect.ratio = 1)
+  ggtitle("In-Degree")
 
 OutDegreePlot <- ggplot(data = IO, mapping = aes(x = Season, y = Out, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
-  theme(aspect.ratio = 1)
+  ggtitle("Out-Degree")
 
 InStrengthPlot <- ggplot(data = strength, mapping =aes(x= Season, y= In, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
-  theme(aspect.ratio = 1)
+  ggtitle("In-Strength")
 
 OutStrengthPlot <- ggplot(data = strength, mapping = aes(x = Season, y = Out, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
-  theme(aspect.ratio = 1)
+  ggtitle("Out-Strength")
 
 betweenPlot <- ggplot(data = b, mapping = aes(x = Season, y = bt, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
-  theme(aspect.ratio = 1)
+  ggtitle("Betweenness")
 
 eigenPlot <- ggplot(data = EC, mapping = aes(x = Season, y = EC.vector, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
-  theme(aspect.ratio = 1)
+  ggtitle("Eigenvector Centrality")
 
 clusterPlot <- ggplot(data = CC, mapping = aes(x = Season, y = CC, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
-  theme(aspect.ratio = 1)
+  ggtitle("Clustering Coefficient")
 
-plot_grid(InDegreePlot, OutDegreePlot, InStrengthPlot, OutStrengthPlot, betweenPlot, eigenPlot, clusterPlot, nrow = 4, ncol = 2)
+cowplot <- plot_grid(InDegreePlot, OutDegreePlot, InStrengthPlot, OutStrengthPlot, betweenPlot, eigenPlot, clusterPlot, nrow = 3, ncol = 3)
+cowplot
