@@ -490,6 +490,15 @@ summary(btM_Males_rank_glmm)
 
 #Node Based Permutations
 #Shuffling IDs
+names(s1G)
+n <- 1000
+permd <- s1G
+permN <- (length = n)
+for(i in 1:n){
+  permd = sample(s1G$vertex.label)
+  m <- igraph::degree(permd$vertex.label, mode = "in")
+  permN[[i]] <- m
+}
 
 #In-Degree & Out-degree
 
