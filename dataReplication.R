@@ -5,6 +5,7 @@ library(rptR)
 library(lme4)
 library(ggplot2)
 library(cowplot)
+library(mosaic)
 
 #Load in datasets
 f <- "https://raw.githubusercontent.com/NicoJaws23/dataReplication/refs/heads/main/IDs_Sex_EloScores.csv"
@@ -146,6 +147,7 @@ IOm <- rpt(In ~ (1|ID) + (1|Season),
            data = IO,
            datatype = "Gaussian")
 summary(IOm)
+
 IOm$R
 IOm$CI_emp
 IOm$P$LRT_P
@@ -430,7 +432,7 @@ outStrengthM_log <- rpt(logOut ~ (1|ID) + (1|Season),
                     grname = "ID",
                     data = strengthM,
                     datatype = "Gaussian")
-summary(outStrengthM)log
+summary(outStrengthM_log)
 #Males with rank
 outStrengthM_rank_log <- rpt(logOut ~ rank + (1|ID) + (1|Season),
                          grname = "ID",
@@ -489,20 +491,67 @@ summary(btM_Males_rank_glmm)
 
 
 #Node Based Permutations
-#Shuffling IDs
-names(s1G)
-n <- 1000
-permd <- s1G
+n <- 10
+
+#In-degree
+permd <- IO
 permN <- (length = n)
 for(i in 1:n){
-  permd = sample(s1G$vertex.label)
-  m <- igraph::degree(permd$vertex.label, mode = "in")
-  permN[[i]] <- m
+  permd$ID = sample(permd$ID)
+  m <- rpt(In ~ (1|ID) + (1|Season),
+           grname = "ID",
+           data = permd,
+           datatype = "Gaussian")
+  permN[[i]] <- m$R
 }
-
-#In-Degree & Out-degree
-
-
+perm_df <- data.frame(ID = permN)
+perm_long <- data.frame(ID = as.numeric(t(perm_df)))
+inDeg_P <- sum(perm_long$ID < -1 * abs(IOm$R) | perm_long$ID > abs(IOm$R))/n
+#In Degree Females
+permd <- ioFemales
+permN <- (length = n)
+for(i in 1:n){
+  permd$ID = sample(permd$ID)
+  m <- rpt(In ~ (1|ID) + (1|Season),
+           grname = "ID",
+           data = permd,
+           datatype = "Gaussian")
+  permN[[i]] <- m$R
+}
+perm_df <- data.frame(ID = permN)
+perm_long <- data.frame(ID = as.numeric(t(perm_df)))
+inDegf_F_P <- sum(perm_long$ID < -1 * abs(IOmF$R) | perm_long$ID > abs(IOmF$R))/n
+#In Degree Females w/ rank
+permd <- ioFemales
+permN <- (length = n)
+for(i in 1:n){
+  permd$ID = sample(permd$ID)
+  m <- rpt(In ~ rank + (1|ID) + (1|Season),
+           grname = "ID",
+           data = permd,
+           datatype = "Gaussian")
+  permN[[i]] <- m$R
+}
+perm_df <- data.frame(ID = permN)
+perm_long <- data.frame(ID = as.numeric(t(perm_df)))
+inDegf_Frank_P <- sum(perm_long$ID < -1 * abs(IOmF_rank$R) | perm_long$ID > abs(IOmF_rank$R))/n
+#In Degree Males
+permd <- ioMales
+permN <- (length = n)
+for(i in 1:n){
+  permd$ID = sample(permd$ID)
+  m <- rpt(In ~ (1|ID) + (1|Season),
+           grname = "ID",
+           data = permd,
+           datatype = "Gaussian")
+  permN[[i]] <- m$R
+}
+perm_df <- data.frame(ID = permN)
+perm_long <- data.frame(ID = as.numeric(t(perm_df)))
+inDegf_Frank_P <- sum(unlist(permN) < -1 * abs(IOmM$R) | unlist(permN) > abs(IOmM$R))/n
+str(permN)
+################################################################################
+################################################################################
 #In-strength & Out-strenght
 
 
