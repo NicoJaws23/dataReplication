@@ -1,5 +1,7 @@
 #Creating and plotting networks, calculating network metric
 library(igraph)
+library(ggplot2)
+library(cowplot)
 #Plot social networks for each season using igraph
 #Season 1
 s1Edges <- data.frame(from = s1$"Actor", to = s1$"Recip", weight = s1$groom.rate)

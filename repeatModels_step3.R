@@ -2,6 +2,9 @@
 #Degree repeatability
 library(rptR)
 library(tidyverse)
+#FOR MALES ONLY: out-strength and eigenvectors were log-transformed
+#FOR BETWEENNESS: GLMMs w/ Poisson dist
+
 #In-degree
 IOm <- rpt(In ~ (1|ID) + (1|Season),
            grname = "ID",
@@ -9,9 +12,6 @@ IOm <- rpt(In ~ (1|ID) + (1|Season),
            datatype = "Gaussian")
 summary(IOm)
 
-IOm$R
-IOm$CI_emp
-IOm$P$LRT_P
 IOmR <- rpt(In ~ rank + (1|ID) + (1|Season),
             grname = "ID",
             data = IO,
@@ -143,19 +143,21 @@ outStrengthF_rank <- rpt(Out ~ rank + (1|ID) + (1|Season),
                          datatype = "Gaussian")
 summary(outStrengthF_rank)
 #Males
-outStrengthM <- rpt(Out ~ (1|ID) + (1|Season),
-                    grname = "ID",
-                    data = strengthM,
-                    datatype = "Gaussian")
-summary(outStrengthM)
+#Male Out-Strength logged
+strengthM <- strengthM |>
+  mutate(logOut = log(Out))
+#New out strength model
+outStrengthM_log <- rpt(logOut ~ (1|ID) + (1|Season),
+                        grname = "ID",
+                        data = strengthM,
+                        datatype = "Gaussian")
+summary(outStrengthM_log)
 #Males with rank
-outStrengthM_rank <- rpt(Out ~ rank + (1|ID) + (1|Season),
-                         grname = "ID",
-                         data = strengthM,
-                         datatype = "Gaussian")
-summary(outStrengthM_rank)
-
-
+outStrengthM_rank_log <- rpt(logOut ~ rank + (1|ID) + (1|Season),
+                             grname = "ID",
+                             data = strengthM,
+                             datatype = "Gaussian")
+summary(outStrengthM_rank_log)
 
 
 #Eigenvector Centrality
@@ -185,20 +187,21 @@ summary(egCentF_rank)
 #Males
 ecMales <- EC |>
   filter(Sex == "M")
-egCentM <- rpt(EC.vector ~ (1|ID) + (1|Season),
-               grname = "ID",
-               data = ecMales,
-               datatype = "Gaussian")
-summary(egCentM)
+#Male eigenvectors logged
+ecMales <- ecMales |>
+  mutate(logEC = log(EC.vector))
+#New eigenvector model
+egCentM_log <- rpt(logEC ~ (1|ID) + (1|Season),
+                   grname = "ID",
+                   data = ecMales,
+                   datatype = "Gaussian")
+summary(egCentM_log)
 #Males with rank
-egCentM_rank <- rpt(EC.vector ~ rank + (1|ID) + (1|Season),
-                    grname = "ID",
-                    data = ecMales,
-                    datatype = "Gaussian")
-summary(egCentM_rank)
-
-
-
+egCentM_rank_log <- rpt(logEC ~ rank + (1|ID) + (1|Season),
+                        grname = "ID",
+                        data = ecMales,
+                        datatype = "Gaussian")
+summary(egCentM_rank_log)
 
 #Clustering coefficient, may need to recheck
 ccM <- rpt(CC ~ (1|ID) + (1|Season),
@@ -239,85 +242,6 @@ ccM_Males_rank <- rpt(CC ~ rank + (1|ID) + (1|Season),
                       datatype = "Gaussian")
 summary(ccM_Males_rank)
 
-
-
-
-#Betweenness
-btM <- rpt(bt ~ (1|ID) + (1|Season),
-           grname = "ID",
-           data = b,
-           datatype = "Gaussian")
-summary(btM)
-btMRank <- rpt(bt ~ rank + (1|ID) + (1|Season),
-               grname = "ID",
-               data = b,
-               datatype = "Gaussian")
-#Females
-bFemales <- b |>
-  filter(Sex == "F")
-btM_Females <- rpt(bt ~ (1|ID) + (1|Season),
-                   grname = "ID",
-                   data = bFemales,
-                   datatype = "Gaussian")
-summary(btM_Females)
-#Females with rank
-btM_Females_rank <- rpt(bt ~ rank + (1|ID) + (1|Season),
-                        grname = "ID",
-                        data = bFemales,
-                        datatype = "Gaussian")
-summary(btM_Females_rank)
-#Males
-bMales <- b |>
-  filter(Sex == "M")
-btM_Males <- rpt(bt ~ (1|ID) + (1|Season),
-                 grname = "ID",
-                 data = bMales,
-                 datatype = "Gaussian")
-summary(btM_Males)
-#Males with rank
-btM_Males_rank <- rpt(bt ~ rank + (1|ID) + (1|Season),
-                      grname = "ID",
-                      data = bMales,
-                      datatype = "Gaussian")
-summary(btM_Males_rank)
-
-#FOR MALES ONLY: out-strength and eigenvectors were log-transformed
-#FOR BETWEENNESS: GLMMs w/ Poisson dist
-
-#Loggin male out-strength and eigenvenctor scores and re-running models
-#Male Out-Strength logged
-strengthM <- strengthM |>
-  mutate(logOut = log(Out))
-#New out strength model
-outStrengthM_log <- rpt(logOut ~ (1|ID) + (1|Season),
-                        grname = "ID",
-                        data = strengthM,
-                        datatype = "Gaussian")
-summary(outStrengthM_log)
-#Males with rank
-outStrengthM_rank_log <- rpt(logOut ~ rank + (1|ID) + (1|Season),
-                             grname = "ID",
-                             data = strengthM,
-                             datatype = "Gaussian")
-summary(outStrengthM_rank_log)
-
-
-
-#Male eigenvectors logged
-ecMales <- ecMales |>
-  mutate(logEC = log(EC.vector))
-#New eigenvector model
-egCentM_log <- rpt(logEC ~ (1|ID) + (1|Season),
-                   grname = "ID",
-                   data = ecMales,
-                   datatype = "Gaussian")
-summary(egCentM_log)
-#Males with rank
-egCentM_rank_log <- rpt(logEC ~ rank + (1|ID) + (1|Season),
-                        grname = "ID",
-                        data = ecMales,
-                        datatype = "Gaussian")
-summary(egCentM_rank_log)
 
 #FOR BETWEENNESS: GLMMs w/ Poisson dist
 btM_glmm <- rptPoisson(bt ~ (1|ID) + (1|Season),
