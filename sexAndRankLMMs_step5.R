@@ -6,7 +6,8 @@ library(lme4)
 inD_sex <- lmer(In ~ (1|ID) + (1|Season) + Sex,
                 data = IO)
 summary(inD_sex)
-
+f <- fitted(inD_sex)
+mean(f)
 outD_sex <- lmer(Out ~ (1|ID) + (1|Season) + Sex,
                  data = IO)
 summary(outD_sex)
