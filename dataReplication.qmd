@@ -94,6 +94,9 @@ Now will will plot each seasons social network. First, we need to define the edg
 #Season 1
 s1Edges <- data.frame(from = s1$"Actor", to = s1$"Recip", weight = s1$groom.rate)
 s1G <- graph_from_data_frame(d = s1Edges, directed = TRUE)
+deg1 <- degree(s1G)
+nsize1 <- 5 + 15*(deg1/max(deg1))
+edges1 <- s1Edges$weight/max(s1Edges$weight) * 5
 
 V(s1G)$color <- sapply(V(s1G)$name, function(name) {
   row <- which(elo$ID == name)
@@ -106,10 +109,12 @@ V(s1G)$color <- sapply(V(s1G)$name, function(name) {
 
 s1p <- plot.igraph(s1G, 
             vertex.shape = "circle",
-            vertex.size = 15,
+            vertex.size = nsize1,
             vertex.color = V(s1G)$color,
             vertex.label = "",
-            edge.curved = .75,
+            edge.width = edges1,
+            edge.arrow.size = 0.3,
+            edge.curved = .5,
             main = c("Season 1",
             "March - May",
             "FOH = 497", " ND = 0.45"))
@@ -122,6 +127,9 @@ s1p <- plot.igraph(s1G,
 #| warning: false
 s2Edges <- data.frame(from = s2$"Actor", to = s2$"Recip", weight = s2$groom.rate)
 s2G <- graph_from_data_frame(d = s2Edges, directed = TRUE)
+deg2 <- degree(s2G)
+nsize2 <- 5 + 15*(deg2/max(deg2))
+edges2 <- s2Edges$weight/max(s2Edges$weight) * 5
 
 V(s2G)$color <- sapply(V(s2G)$name, function(name) {
   row <- which(elo$ID == name)
@@ -134,10 +142,12 @@ V(s2G)$color <- sapply(V(s2G)$name, function(name) {
 
 s2p <- plot.igraph(s2G, 
             vertex.shape = "circle",
-            vertex.size = 15,
+            vertex.size = nsize2,
             vertex.color = V(s1G)$color,
             vertex.label = "",
             edge.curved = .75,
+            edge.width = edges2,
+            edge.arrow.size = 0.3,
             main = c("Season 2",
             "June - September",
             "FOH = 967.1", " ND = 0.71"))
@@ -150,6 +160,9 @@ s2p <- plot.igraph(s2G,
 #| warning: false
 s3Edges <- data.frame(from = s3$"Actor", to = s3$"Recip", weight = s3$groom.rate)
 s3G <- graph_from_data_frame(d = s3Edges, directed = TRUE)
+deg3 <- degree(s3G)
+nsize3 <- 5 + 15*(deg3/max(deg3))
+edges3 <- s3Edges$weight/max(s3Edges$weight) * 5
 
 V(s3G)$color <- sapply(V(s3G)$name, function(name) {
   row <- which(elo$ID == name)
@@ -162,14 +175,20 @@ V(s3G)$color <- sapply(V(s3G)$name, function(name) {
 
 s3p <- plot.igraph(s3G, 
             vertex.shape = "circle",
-            vertex.size = 15,
+            vertex.size = nsize3,
             vertex.color = V(s1G)$color,
             vertex.label = "",
             edge.curved = .75,
+            edge.arrow.size = 0.3,
+            edge.width = edges3,
             main = c("Season 3",
             "October - December",
             "FOH = 705.2", " ND = 0.52"))
 ```
+
+My networks closely approximate those in the original study in Figure 1
+
+![](TablesFigures/Figure1.png)
 
 ## Calculating Metrics
 
@@ -256,25 +275,29 @@ InDegreePlot <- ggplot(data = IO, mapping = aes(x = as.numeric(Season), y = In, 
   geom_line() +
   theme(legend.position = "none") +
   ggtitle("In-Degree") +
-  xlab(label = "Season")
+  xlab(label = "Season") +
+  ylab(label = "In-Degree")
 
 OutDegreePlot <- ggplot(data = IO, mapping = aes(x = as.numeric(Season), y = Out, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
   ggtitle("Out-Degree") +
-  xlab(label = "Season")
+  xlab(label = "Season") +
+  ylab(label = "Out-Degree")
 
 InStrengthPlot <- ggplot(data = strength, mapping = aes(x= as.numeric(Season), y= In, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
   ggtitle("In-Strength") +
-  xlab(label = "Season")
+  xlab(label = "Season") +
+  ylab(label = "In-Strength")
 
 OutStrengthPlot <- ggplot(data = strength, mapping = aes(x = as.numeric(Season), y = Out, color = ID)) +
   geom_line()+
   theme(legend.position = "none") +
   ggtitle("Out-Strength") +
-  xlab(label = "Season")
+  xlab(label = "Season") +
+  ylab(label = "Out-Strength")
 
 betweenPlot <- ggplot(data = b, mapping = aes(x = as.numeric(Season), y = bt, color = ID)) +
   geom_line()+
@@ -298,11 +321,16 @@ cowplot <- plot_grid(InDegreePlot, OutDegreePlot, InStrengthPlot, OutStrengthPlo
 cowplot
 ```
 
+These plots are meant to mirror the ones in figure 2 of the original study. My clustering coefficient is the only one which seems to not match the original.
+
+![](TablesFigures/Figure2.png)
+
 I will also create boxplots of each metric per sex in each season, recreating Figure 3 in the article. The "fill" argument within ggplot() allows me to make separate boxes based on sex for each season. F indicates Female while M indicates Male
 
 ```{r}
 #| message: false
 #| warning: false
+
 inD <- ggplot(data = IO, mapping = aes(x = Season, y = In , fill = Sex)) +
   geom_boxplot() +
   ylab(label = "In-Degree") +
@@ -333,6 +361,10 @@ between <- ggplot(data = b, mapping = aes(x = Season, y = bt , fill = Sex)) +
   ggtitle("Betweenness")
 plot_grid(inD, outD, inS, outS, eigen, clust, between)
 ```
+
+These boxplots are meant to resemble figure 3 and appear to deviate from those made in the original study
+
+![](TablesFigures/Figure3.png)
 
 ## Running Models
 
@@ -1109,5 +1141,7 @@ print(paste("Male p-values: In-Degree p-value:", inDMrankp, "; Out-Degree p-valu
 ```
 
 ## Replication Successes
+
+In replicating this study, I was able to (i) create social grooming networks for each of the three seasons, (ii) calculate the 7 metrics used, (iii) plot changes in these metrics over the three seasons and between sexes, (iv) calculate the repeatability of each metric across time using formulas in the {rptR} package.
 
 ## Replication Challenges
