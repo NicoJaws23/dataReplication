@@ -2,6 +2,9 @@
 title: "dataReplication"
 format: html
 editor: visual
+toc: true
+toc-expand: 3
+toc-title: Contents
 ---
 
 # Data Replication Project: Replicating a Social Network Analysis
@@ -20,7 +23,13 @@ Blaszczyk used 20-minute continuous focal sampling to record grooming bouts last
 
 ### Analysis
 
-The initial analysis used function in the {igraph} package to construct grooming networks for each season. These networks were one directed and weighted based on grooming rate. {igraph} as also used to calculate the seven network metrics. Elo-ratings were calculated using the {EloRating} package and converted to ranks on the last day of each season (IDs_Sex_EloScores in OGData). To test the repeatability of each metric across seasons, linear mixed effects models (LMMs) were run using the {rptR} package. Models were run for the whole mixed sex sample (n = 26), females (n = 16), and males (n = 10) with season being a random effect. These models were also all run again with rank included as a fixed effect. Additionally, sex was used as a fixed effect for (G)LMMs to examine sex differences and the effects of dominance rank on all social network metrics. Node-based permutation tests with 1000 iterations were used on all metrics to evaluate the significance of repeatability. In order to test for the collinearity between each pair of metrics, Spearman rank correlation was used. All mixed models were fit with the {lme4} package.
+The initial analysis used function in the {igraph} package to construct grooming networks for each season. These networks were one directed and weighted based on grooming rate. {igraph} as also used to calculate the seven network metrics. Elo-ratings were calculated using the {EloRating} package and converted to ranks on the last day of each season (IDs_Sex_EloScores in OGData).
+
+To test the repeatability of each metric across seasons, linear mixed effects models (LMMs) were run using the {rptR} package. Models were run for the whole mixed sex sample (n = 26), females (n = 16), and males (n = 10) with season being a random effect. These models were also all run again with rank included as a fixed effect, resulting in a total of 5 repeatability models run for each metric (35 total models).
+
+Additionally, sex was used as a fixed effect for (G)LMMs to examine the effects of sex differences on network metrics. (G)LMMs were also run with rank as a fixed effect for each sex separately to determing the effects of dominance rank on all social network metrics.
+
+Node-based permutation tests with 1000 iterations were used on all models to calculate p-values to determine the significance of the repeatability estimates from the rpt() models and the signifiance of sex and rank differences in the (G)LMMs. In order to test for the collinearity between each pair of metrics, Spearman rank correlation was used. All mixed models were fit with the {lme4} package.
 
 ### Conclusions
 
@@ -40,6 +49,7 @@ library(lme4)
 library(ggplot2)
 library(cowplot)
 library(mosaic)
+library(rstatix)
 ```
 
 ## Data
@@ -82,9 +92,9 @@ com <- bind_rows(list(s1, s2, s3))
 
 ```
 
-## Plots
+## Network Plots
 
-Now will will plot each seasons social network. First, we need to define the edges for each network which we will store in a variable names sXEdges. This will be a data frame with the actor, recipient, and grooming rate. Next we will graph the social network using the graph_from_data_frame() function which will take out edges data as an argument along with setting directed to TRUE. In the original study, females are white circles while males are gray circles. To do this, we will call the colors of the vertices of the graph and set them to be based on vertices name which is based on each individuals ID. This will be linked to the elo table which has the sex of each individual which be used to assign the proper color to each vertex. Then, using the plot.igraph() function, we will plot the social network. This will be repeated for each season. I was not able to figure out how to combine all three figures into one nice row, but it is meant to represent figure 1.
+Now will will plot each seasons social network. First, we need to define the edges for each network which we will store in a variable names sXEdges. This will be a data frame with the actor, recipient, and grooming rate. Next we will graph the social network using the graph_from_data_frame() function which will take out edges data as an argument along with setting directed to TRUE. In the original study, females are white circles while males are gray circles. To do this, we will call the colors of the vertices of the graph and set them to be based on vertices name which is based on each individuals ID. This will be linked to the elo table which has the sex of each individual which be used to assign the proper color to each vertex using an if_else() statement. Additionally, node size was based on a scaled unweighted degree which we will calulate using the degree() function from {igraph}. This will cause each node to be sized based on the degree of the grooming rate, with those recieving more being larger than those who recieved less. Then, using the plot.igraph() function, we will plot the social network. This will be repeated for each season. I was not able to figure out how to combine all three figures into one nice row, but it is meant to represent figure 1.
 
 ### Season 1
 
@@ -94,9 +104,7 @@ Now will will plot each seasons social network. First, we need to define the edg
 #Season 1
 s1Edges <- data.frame(from = s1$"Actor", to = s1$"Recip", weight = s1$groom.rate)
 s1G <- graph_from_data_frame(d = s1Edges, directed = TRUE)
-deg1 <- degree(s1G)
-nsize1 <- 5 + 15*(deg1/max(deg1))
-edges1 <- s1Edges$weight/max(s1Edges$weight) * 5
+nsize1 <- 5 + 15*(degree(s1G)/max(degree(s1G)))
 
 V(s1G)$color <- sapply(V(s1G)$name, function(name) {
   row <- which(elo$ID == name)
@@ -112,7 +120,6 @@ s1p <- plot.igraph(s1G,
             vertex.size = nsize1,
             vertex.color = V(s1G)$color,
             vertex.label = "",
-            edge.width = edges1,
             edge.arrow.size = 0.3,
             edge.curved = .5,
             main = c("Season 1",
@@ -127,9 +134,7 @@ s1p <- plot.igraph(s1G,
 #| warning: false
 s2Edges <- data.frame(from = s2$"Actor", to = s2$"Recip", weight = s2$groom.rate)
 s2G <- graph_from_data_frame(d = s2Edges, directed = TRUE)
-deg2 <- degree(s2G)
-nsize2 <- 5 + 15*(deg2/max(deg2))
-edges2 <- s2Edges$weight/max(s2Edges$weight) * 5
+nsize2 <- 5 + 15*(degree(s2G)/max(degree(s2G)))
 
 V(s2G)$color <- sapply(V(s2G)$name, function(name) {
   row <- which(elo$ID == name)
@@ -146,7 +151,6 @@ s2p <- plot.igraph(s2G,
             vertex.color = V(s1G)$color,
             vertex.label = "",
             edge.curved = .75,
-            edge.width = edges2,
             edge.arrow.size = 0.3,
             main = c("Season 2",
             "June - September",
@@ -160,9 +164,7 @@ s2p <- plot.igraph(s2G,
 #| warning: false
 s3Edges <- data.frame(from = s3$"Actor", to = s3$"Recip", weight = s3$groom.rate)
 s3G <- graph_from_data_frame(d = s3Edges, directed = TRUE)
-deg3 <- degree(s3G)
-nsize3 <- 5 + 15*(deg3/max(deg3))
-edges3 <- s3Edges$weight/max(s3Edges$weight) * 5
+nsize3 <- 5 + 15*(degree(s3G)/max(degree(s3G)))
 
 V(s3G)$color <- sapply(V(s3G)$name, function(name) {
   row <- which(elo$ID == name)
@@ -180,7 +182,6 @@ s3p <- plot.igraph(s3G,
             vertex.label = "",
             edge.curved = .75,
             edge.arrow.size = 0.3,
-            edge.width = edges3,
             main = c("Season 3",
             "October - December",
             "FOH = 705.2", " ND = 0.52"))
@@ -188,11 +189,13 @@ s3p <- plot.igraph(s3G,
 
 My networks closely approximate those in the original study in Figure 1
 
-![](TablesFigures/Figure1.png)
+![](Images/Figure1.png)
 
 ## Calculating Metrics
 
 Next, we will calculate the each of the 7 metrics used in the study, in-degree, out-degree, in-strength, out-strength, betweenness, eigenvector centrality, and clustering coefficient. Each metric will be stored in a data frame with a unique column name for each season which will then be combined to analyze for repeatability. Additionally, the combined data frame will be mutated so that season and rank (numeric values) are converted to factors. The {igraph} functions degree(), strength(), betweenness(), eigen_centrality(), and transitivity() will be used to calculate the 7 different metrics. For each season I will select individual demographic information and the 7 metrics of interest using the select() function. I did this because the eigen_centrality() function produces a series of extra columns not needed for this analysis.
+
+In addition to calculating all the metrics, I split the full list into one for males and one for females for later analysis based on sex. I also created a data frame which provides the mean and standard deviation of each metric per individual and anoter data frame which does the same but instead groups the data by sex and season.
 
 ```{r}
 #Calculating metrics for season 1
@@ -220,6 +223,16 @@ Females <- allMetrics |>
   filter(Sex == "F")
 Males <- allMetrics |>
   filter(Sex == "M")
+
+IndivDescrip <- allMetrics |>
+  group_by(ID) |>
+  summarize(In.Degree.Mean = mean(In.Degree), In.Degree.SD = sd(In.Degree), Out.Degree.Mean = mean(Out.Degree), Out.Degree.SD = sd(In.Degree), In.Strength.Mean = mean(In.Strength), In.Strength.SD = sd(In.Strength), Out.Degree.Mean = mean(Out.Degree), Out.Degree.SD = sd(Out.Degree), Eigenvector.Mean = mean(EC.vector), Eigenvector.SD = sd(EC.vector), Clustering.Coefficient.Mean = mean(CC), Custering.Coefficient.SD = sd(CC), Betweennss.Mean = mean(b), Betweenness.SD = sd(b))
+IndivDescrip
+
+SeasonDescrip <- allMetrics |>
+  group_by(Sex, Season) |>
+  summarize(In.Degree.Mean = mean(In.Degree), In.Degree.SD = sd(In.Degree), Out.Degree.Mean = mean(Out.Degree), Out.Degree.SD = sd(In.Degree), In.Strength.Mean = mean(In.Strength), In.Strength.SD = sd(In.Strength), Out.Degree.Mean = mean(Out.Degree), Out.Degree.SD = sd(Out.Degree), Eigenvector.Mean = mean(EC.vector), Eigenvector.SD = sd(EC.vector), Clustering.Coefficient.Mean = mean(CC), Custering.Coefficient.SD = sd(CC), Betweennss.Mean = mean(b), Betweenness.SD = sd(b))
+SeasonDescrip
 ```
 
 ## Plotting Metrics
@@ -281,7 +294,7 @@ cowplot
 
 These plots are meant to mirror the ones in figure 2 of the original study. My clustering coefficient is the only one which seems to not match the original.
 
-![](TablesFigures/Figure2.png)
+![](Images/Figure2.png)
 
 I will also create boxplots of each metric per sex in each season, recreating Figure 3 in the article. The "fill" argument within ggplot() allows me to make separate boxes based on sex for each season. F indicates Female while M indicates Male
 
@@ -317,16 +330,18 @@ between <- ggplot(data = allMetrics, mapping = aes(x = Season, y = b, fill = Sex
   geom_boxplot() +
   ylab(label = "Betweenness") +
   ggtitle("Betweenness")
-plot_grid(inD, outD, inS, outS, eigen, clust, between)
+
+cowplot1 <- plot_grid(inD, outD, inS, outS, eigen, clust, between)
+cowplot1
 ```
 
 These boxplots are meant to resemble figure 3 and appear to deviate from those made in the original study
 
-![](TablesFigures/Figure3.png)
+![](images/Figure3.png)
 
 ## Running Models
 
-Now we will fun the repeatability models for each of the metrics. Each of the 7 metrics has 5 models associated with it, 1 for all individual combined, 1 for just females, 1 for just females but with rank as a fixed effect, 1 for just males, and 1 for just males with rank as a fixed effect. All models use the rpt() function from {rptR}. In all models, the season and individual ID are random effects
+Now we will fun the repeatability models for each of the metrics. Each of the 7 metrics has 5 models associated with it, 1 for all individual combined, 1 for just females, 1 for just females but with rank as a fixed effect, 1 for just males, and 1 for just males with rank as a fixed effect. All models use the rpt() function from {rptR}. In all models, the season and individual ID are random effects. The grname argument in the function designates how the function should group the data to test for repeatability. Since we are looking for individual repeatability, we will put "ID" here. Gaussian is the data type here as we are dealing with a normal distribution
 
 ### In-Degree & Out-Degree
 
@@ -399,7 +414,7 @@ summary(ioOutMales_rank)
 
 ### In-Strength & Out-Strength
 
-The out-strength values used in the male-only models were logged transformed to meet assumptions
+The out-strength values used in the male-only models were logged transformed to meet normal distribution assumptions
 
 ```{r}
 #| message: false
@@ -587,11 +602,11 @@ summary(ccM_Males_rank)
 
 ### Extract R and CIs
 
-Here I am creating a list of all the models and running them through a function to easily extract the R estimate and 95% confidence intervals
+Here I am creating a list of all the models and running them through a function to easily extract the R estimate and 95% confidence intervals. The getR function does this for all the models except for betweenness. Since betweenness was run using rptPoisson() the formatting of the results requires a different approach to extract.
 
 ```{r}
 getR <- function(model) {
-  d <- data.frame(R = model$R["ID"], CI = paste(model$CI_emp["ID", "2.5%"], "-", model$CI_emp["ID", "97.5%"]))
+  d <- data.frame(R = as.numeric(model$R["ID"]), CI = paste(model$CI_emp["ID", "2.5%"], "-", model$CI_emp["ID", "97.5%"]))
   return(d)
 }
 getRb <- function(model) {
@@ -604,7 +619,6 @@ x <- lapply(models, getR)
 results <- do.call(rbind, x)
 results <- results |>
   mutate(Metric.Sample = c("In-Degree", "In-Degree Females", "In-Degree Female Rank", "In-Degree Males", "In-Degree Males Rank", "Out-Degree", "Out-Degree Females", "Out-Degree Females Rank", "Out-Degree Males", "Out-Degree Males Rank", "In-Strength", "In-Strength Females", "In-Strength Females Rank", "In-Strength Males", "In-Strength Males Rank", "Out-Strength", "Out-Strength Females", "Out-Strength Females Rank", "Out-Strength Males", "Out-Strength Males Rank", "Eigenvector", "Eigenvector Females", "Eigenvector Females Rank", "Eigenvector Males", "Eigenvector Males Rank", "Clustering Coefficient", "Clustering Coefficient Females", "Clustering Coefficient Females Rank", "Clustering Coefficient Males", "Clustering Coefficient Males Rank"))
-results
 
 #Betweenness
 modelB <- list(Betweenness = btM_glmm, Betweenness.Females = btM_Females_glmm, Betweenness.Females.Rank = btM_Females_rank_glmm, Betweenness.Males = btM_Males_glmm, Betweenness.Males.Rank = btM_Males_rank_glmm)
@@ -612,57 +626,21 @@ xB <- lapply(modelB, getRb)
 resultsB <- do.call(rbind, xB)
 resultsB <- resultsB |>
   mutate(Metric.Sample = c("Betweenness", "Betweenness Females", "Betweenness Females Rank", "Betweenness Males", "Betweenness Males Rank"))
-resultsB
+
+allResults <- bind_rows(list(results, resultsB))
+allResults <- allResults |>
+  relocate(Metric.Sample, .before = R)
+rownames(allResults) <- NULL
+allResults
 ```
 
 Table 2 of the original study provides the repeatability estimate (R), 95% confidence interval (CI), and the p-value of each repeatability estimate based on a node permutation test. The table below it summarizes the R and CI values returned by the models I ran
 
-![](TablesFigures/Table2.png){fig-align="center" width="242"}
-
-|                        |                 |       |        |
-|------------------------|-----------------|-------|--------|
-| **Metric**             | **Sample**      | **R** | **CI** |
-| In-Degree              | All             |       |        |
-| In-Degree              | Females         |       |        |
-| In-Degree              | Females w/ Rank |       |        |
-| In-Degree              | Males           |       |        |
-| In-Degree              | Males w/ Rank   |       |        |
-| Out-Degree             | All             |       |        |
-| Out-Degree             | Females         |       |        |
-| Out-Degree             | Females w/ Rank |       |        |
-| Out-Degree             | Males           |       |        |
-| Out-Degree             | Males w/ Rank   |       |        |
-| In-Strength            | All             |       |        |
-| In-Strength            | Females         |       |        |
-| In-Strength            | Females w/ Rank |       |        |
-| In-Strength            | Males           |       |        |
-| In-Strength            | Males w/ rank   |       |        |
-| Out-Strength           | All             |       |        |
-| Out-Strength           | Females         |       |        |
-| Out-Strength           | Females w/ Rank |       |        |
-| Out-Strength           | Males           |       |        |
-| Out-Strength           | Males w/ Rank   |       |        |
-| Eigenvector Centrality | All             |       |        |
-| Eigenvector Centrality | Females         |       |        |
-| Eigenvector Centrality | Females w/ Rank |       |        |
-| Eigenvector Centrality | Males           |       |        |
-| Eigenvector Centrality | Males w/ Rank   |       |        |
-| Clustering Coefficient | All             |       |        |
-| Clustering Coefficient | Females         |       |        |
-| Clustering Coefficient | Females w/ Rank |       |        |
-| Clustering Coefficient | Males           |       |        |
-| Clustering Coefficient | Males w/ Rank   |       |        |
-| Betweenness            | All             |       |        |
-| Betweenness            | Females         |       |        |
-| Betweenness            | Females w/ Rank |       |        |
-| Betweenness            | Males           |       |        |
-| Betweenness            | Males w/ Rank   |       |        |
-
-## 
+![](images/Table2.png){fig-align="center" width="242"}
 
 ## Node-Based Permuation
 
-Since individual network metric are not independent of other network members, the orignal study used a node-based permutatio approach to tests for the significance of each repeatability estimate. Individual IDs were randomized for each of the three networks before running a new repeatability model. This was repeated 1000 times. I built the following function to do this easily for each metric. The first is for the standard node based permutation, the next is for the GLMMs used for betweenenss
+Since individual network metric are not independent of other network members, the orignal study used a node-based permutatio approach to tests for the significance of each repeatability estimate. Individual IDs were randomized for each of the three networks before running a new repeatability model. This was repeated 1000 times. I built the following function to do this easily for each metric. The first is for the standard node based permutation, the next is for the GLMMs used for betweennenss. While the original study ran 1000 permutations, I only ran 10 as 1000 took more time and processing power than I had (I tried doing 1000 and letting it run over night and it didnt even finish the first network metric). Thus, my p-values will be different from the original study due to a smaller sample size.
 
 ```{r}
 #| message: false
@@ -685,7 +663,7 @@ nodePermGlmm <- function(df, n, formula){
     permd$ID = sample(permd$ID)
     m <- rptPoisson(formula,
                     grname = "ID",
-                    data = b)
+                    data = permd)
     data.frame(R = m$R$ID)
   }
   return(permN)
@@ -694,185 +672,215 @@ nodePermGlmm <- function(df, n, formula){
 
 ### In-Degree & Out-Degree
 
-```{r}
+Now I will start running the node based permutations, first for in-degree and out-degree. The p-value is calculated by taking the repeatability estimates from the node-based permutation and comparing them to the original estimate. The study used a two-tailed p-value which we will calculate using the method seen first in the variable inDegPval. This method will be repeated for each metric with minor edits to each to ensure that the proper data is being examined.
+
+```{r, message=FALSE, warning=FALSE}
 #| message: false
 #| warning: false
 #In-degree
-inDegPerm <- nodePerm(df = allMetrics, n = 2, formula = In.Degree ~ (1|ID) + (1|Season))
-inDegPval <- (sum(inDegPerm$R >= IOm$R) + 1) / (length(inDegPerm$R) + 1)
+inDegPerm <- nodePerm(df = allMetrics, n = 10, formula = In.Degree ~ (1|ID) + (1|Season))
+inDegPval <- (sum(inDegPerm$R >= abs(IOm$R)) + sum(inDegPerm$R <= -abs(IOm$R)))/10
 
 #In Degree Females
-inDegPermF <- nodePerm(df = Females, n = 10, forumula = In.Degree ~ (1|ID) + (1|Season))
-inDegPermF_pval <- (sum(inDegPermF$R >= IOmF$R) + 1) / (length(inDegPermF$R) + 1)
+inDegPermF <- nodePerm(df = Females, n = 10, formula = In.Degree ~ (1|ID) + (1|Season))
+inDegPermF_pval <- (sum(inDegPermF$R >= abs(IOmF$R)) + sum(inDegPermF$R <= -abs(IOmF$R)))/10
 
 #In Degree Females w/ rank
-inDegPermFrank <- nodePerm(df = Females, n = 10, forumula = In.Degree ~ rank + (1|ID) + (1|Season))
-inDegPermFrank_pval <- (sum(inDegPermFrank$R >= IOmF_rank$R) + 1) / (length(inDegPermFrank$R) + 1)
+inDegPermFrank <- nodePerm(df = Females, n = 10, formula = In.Degree ~ rank + (1|ID) + (1|Season))
+inDegPermFrank_pval <- (sum(inDegPermFrank$R >= abs(IOmF_rank$R)) + sum(inDegPermFrank$R <= -abs(IOmF_rank$R)))/10
 
 #In Degree Males
-inDegPermM <- nodePerm(df = Males, n = 10, forumula = In.Degree ~ (1|ID) + (1|Season))
-inDegPermM_pval <- (sum(inDegPermM$R >= IOmM$R) + 1) / (length(inDegPermM$R) + 1)
+inDegPermM <- nodePerm(df = Males, n = 10, formula = In.Degree ~ (1|ID) + (1|Season))
+inDegPermM_pval <- (sum(inDegPermM$R >= abs(IOmM$R)) + sum(inDegPermM$R <= -abs(IOmM$R)))/10
 
 #In Degree Males w/ rank
-inDegPermMrank <- nodePerm(df = Males, n = 10, forumula = In.Degree ~ rank + (1|ID) + (1|Season))
-inDegPermMrank_pval <- (sum(inDegPermMrank$R >= IOmM_rank$R) + 1) / (length(inDegPermMrank$R) + 1)
+inDegPermMrank <- nodePerm(df = Males, n = 10, formula = In.Degree ~ rank + (1|ID) + (1|Season))
+inDegPermMrank_pval <- (sum(inDegPermMrank$R >= abs(IOmM_rank$R)) + sum(inDegPermMrank$R <= -abs(IOmM_rank$R)))/10
 
 #Out degree
-outDegPerm <- nodePerm(df = allMetrics, n = 2, formula = Out.Degree ~ (1|ID) + (1|Season))
-inDegPval <- (sum(outDegPerm$R >= IOmOut$R) + 1) / (length(outDegPerm$R) + 1)
+outDegPerm <- nodePerm(df = allMetrics, n = 10, formula = Out.Degree ~ (1|ID) + (1|Season))
+outDegPval <- (sum(outDegPerm$R >= abs(IOmOut$R)) + sum(outDegPerm$R <= -abs(IOmOut$R)))/10
 
 #Out degree females
-outDegPermF <- nodePerm(df = Females, n = 2, formula = Out.Degree ~ (1|ID) + (1|Season))
-outDegPermF_pval <- (sum(outDegPermF$R >= ioOutFemales$R) + 1) / (length(outDegPermF$R) + 1)
+outDegPermF <- nodePerm(df = Females, n = 10, formula = Out.Degree ~ (1|ID) + (1|Season))
+outDegPermF_pval <- (sum(outDegPermF$R >= abs(ioOutFemales$R)) + sum(outDegPermF$R <= -abs(ioOutFemales$R)))/10
 
 #Out degree females w/ rank
-outDegPermFrank <- nodePerm(df = Females, n = 2, formula = Out.Degree ~ rank + (1|ID) + (1|Season))
-outDegPermFrank_pval <- (sum(outDegPermFrank$R >= ioOutFemales_rank$R) + 1) / (length(outDegPermFrank$R) + 1)
+outDegPermFrank <- nodePerm(df = Females, n = 10, formula = Out.Degree ~ rank + (1|ID) + (1|Season))
+outDegPermFrank_pval <- (sum(outDegPermFrank$R >= abs(ioOutFemales_rank$R)) + sum(outDegPermFrank$R <= -abs(ioOutFemales_rank$R)))/10
 
 #Out degree males
-outDegPermM <- nodePerm(df = Males, n = 2, formula = Out.Degree ~ (1|ID) + (1|Season))
-outDegPermM_pval <- (sum(outDegPermM$R >= ioOutMales$R) + 1) / (length(outDegPermM$R) + 1)
+outDegPermM <- nodePerm(df = Males, n = 10, formula = Out.Degree ~ (1|ID) + (1|Season))
+outDegPermM_pval <- (sum(outDegPermM$R >= abs(ioOutMales$R)) + sum(outDegPermM$R <= -abs(ioOutMales$R)))/10
 
 #Out degree males w/ rank
-outDegPermMrank <- nodePerm(df = Males, n = 2, formula = Out.Degree ~ rank + (1|ID) + (1|Season))
-outDegPermMrank_pval <- (sum(outDegPermMrank$R >= ioOutMales_rank$R) + 1) / (length(outDegPermMrank$R) + 1)
+outDegPermMrank <- nodePerm(df = Males, n = 10, formula = Out.Degree ~ rank + (1|ID) + (1|Season))
+outDegPermMrank_pval <- (sum(outDegPermMrank$R >= abs(ioOutMales_rank$R)) + sum(outDegPermMrank$R <= -abs(ioOutMales_rank$R)))/10
 ```
 
 ### In-Strength & Out-Strength
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #| message: false
 #| warning: false
+options(warning = -1, message = -1)
 #In-strength
-inStrengthPerm <- nodePerm(df = allMetrics, n = 2, formula = In.Strength ~ (1|ID) + (1|Season))
-inStrengthPerm_pval <- (sum(inStrengthPerm$R >= inStrength$R) + 1) / (length(inStrengthPerm$R) + 1)
+inStrengthPerm <- nodePerm(df = allMetrics, n = 10, formula = In.Strength ~ (1|ID) + (1|Season))
+inStrengthPerm_pval <- (sum(inStrengthPerm$R >= abs(inStrength$R)) + sum(inStrengthPerm$R <= -abs(inStrength$R)))/10
 
 #In-strength females
-inStrengthPermF <- nodePerm(df = Females, n = 2, formula = In.Strength ~ (1|ID) + (1|Season))
-inStrengthPermF_pval <- (sum(inStrengthPermF$R >= inStrengthF$R) + 1) / (length(inStrengthPermF$R) + 1)
+inStrengthPermF <- nodePerm(df = Females, n = 10, formula = In.Strength ~ (1|ID) + (1|Season))
+inStrengthPermF_pval <- (sum(inStrengthPermF$R >= abs(inStrengthF$R)) + sum(inStrengthPermF$R <= -abs(inStrengthF$R)))/10
 
 #In-strength females w/ rank
-inStrengthPermFrank <- nodePerm(df = Females, n = 2, formula = In.Strength ~ rank + (1|ID) + (1|Season))
-inStrengthPermFrank_pval <- (sum(inStrengthPermFrank$R >= inStrengthF_rank$R) + 1) / (length(inStrengthPermFrank$R) + 1)
+inStrengthPermFrank <- nodePerm(df = Females, n = 10, formula = In.Strength ~ rank + (1|ID) + (1|Season))
+inStrengthPermFrank_pval <- (sum(inStrengthPermFrank$R >= abs(inStrengthF_rank$R)) + sum(inStrengthPermFrank$R <= -abs(inStrengthF_rank$R)))/10
 
 #In-strength Males
-inStrengthPermM <- nodePerm(df = Males, n = 2, formula = In.Strength ~ (1|ID) + (1|Season))
-inStrengthPermM_pval <- (sum(inStrengthPermM$R >= inStrengthM$R) + 1) / (length(inStrengthPermM$R) + 1)
+inStrengthPermM <- nodePerm(df = Males, n = 10, formula = In.Strength ~ (1|ID) + (1|Season))
+inStrengthPermM_pval <- (sum(inStrengthPermM$R >= abs(inStrengthM$R)) + sum(inStrengthPermM$R <= -abs(inStrengthM$R)))/10
 
 #In-strength Males w/ rank
-inStrengthPermMrank <- nodePerm(df = Males, n = 2, formula = In.Strength ~ rank + (1|ID) + (1|Season))
-inStrengthPermMrank_pval <- (sum(inStrengthPermMrank$R >= inStrengthM_rank$R) + 1) / (length(inStrengthPermMrank$R) + 1)
+inStrengthPermMrank <- nodePerm(df = Males, n = 10, formula = In.Strength ~ rank + (1|ID) + (1|Season))
+inStrengthPermMrank_pval <- (sum(inStrengthPermMrank$R >= abs(inStrengthM_rank$R)) + sum(inStrengthPermMrank$R <= -abs(inStrengthM_rank$R)))/10
 
 #Out-strength
-outStrengthPerm <- nodePerm(df = allMetrics, n = 2, formula = Out.Strength ~ (1|ID) + (1|Season))
-outStrengthPerm_pval <- (sum(outStrengthPerm$R >= outStrength$R) + 1) / (length(outStrengthPerm$R) + 1)
+outStrengthPerm <- nodePerm(df = allMetrics, n = 10, formula = Out.Strength ~ (1|ID) + (1|Season))
+outStrengthPerm_pval <- (sum(outStrengthPerm$R >= abs(outStrength$R)) + sum(outStrengthPerm$R <= -abs(outStrength$R)))/10
 
 #out-strength females
-outStrengthPermF <- nodePerm(df = Females, n = 2, formula = Out.Strength ~ (1|ID) + (1|Season))
-outStrengthPermF_pval <- (sum(outStrengthPermF$R >= outStrengthF$R) + 1) / (length(outStrengthPermF$R) + 1)
+outStrengthPermF <- nodePerm(df = Females, n = 10, formula = Out.Strength ~ (1|ID) + (1|Season))
+outStrengthPermF_pval <- (sum(outStrengthPermF$R >= abs(outStrengthF$R)) + sum(outStrengthPermF$R <= -abs(outStrengthF$R)))/10
 
 #out-strength females w/ rank
-outStrengthPermFrank <- nodePerm(df = Females, n = 2, formula = Out.Strength ~ rank + (1|ID) + (1|Season))
-outStrengthPermFrank_pval <- (sum(outStrengthPermFrank$R >= outStrengthF_rank$R) + 1) / (length(outStrengthPermFrank$R) + 1)
+outStrengthPermFrank <- nodePerm(df = Females, n = 10, formula = Out.Strength ~ rank + (1|ID) + (1|Season))
+outStrengthPermFrank_pval <- (sum(outStrengthPermFrank$R >= abs(outStrengthF_rank$R)) + sum(outStrengthPermFrank$R <= -abs(outStrengthF_rank$R)))/10
 
 #out-strength Males
-outStrengthPermM <- nodePerm(df = Males, n = 2, formula = logOutStrength ~ (1|ID) + (1|Season))
-outStrengthPermM_pval <- (sum(outStrengthPermM$R >= outStrengthM_log$R) + 1) / (length(outStrengthPermM$R) + 1)
+outStrengthPermM <- nodePerm(df = Males, n = 10, formula = logOutStrength ~ (1|ID) + (1|Season))
+outStrengthPermM_pval <- (sum(outStrengthPermM$R >= abs(outStrengthM_log$R)) + sum(outStrengthPermM$R <= -abs(outStrengthM_log$R)))/10
 
 #out-strength Males w/ rank
-outStrengthPermMrank <- nodePerm(df = Males, n = 2, formula = logOutStrength ~ rank + (1|ID) + (1|Season))
-outStrengthPermMrank_pval <- (sum(outStrengthPermMrank$R >= outStrengthM_rank_log$R) + 1) / (length(outStrengthPermMrank$R) + 1)
+outStrengthPermMrank <- nodePerm(df = Males, n = 10, formula = logOutStrength ~ rank + (1|ID) + (1|Season))
+outStrengthPermMrank_pval <- (sum(outStrengthPermMrank$R >= abs(outStrengthM_rank_log$R)) + sum(outStrengthPermMrank$R <= -abs(outStrengthM_rank_log$R)))/10
 ```
 
 ### Betweenness
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #| message: false
 #| warning: false
+options(warning = -1, message = -1)
 #Betweenness
-btPerm <- nodePermGlmm(df = allMetrics, n = 2, formula = b ~ (1|ID) + (1|Season))
-btPerm_pval <- (sum(btPerm$R >= btM_glmm$R) + 1)/(length(btPerm$R) + 1)
+btPerm <- nodePermGlmm(df = allMetrics, n = 10, formula = b ~ (1|ID) + (1|Season))
+btPerm_pval <- (sum(btPerm$R >= abs(btM_glmm$R)) + sum(btPerm$R <= -abs(btM_glmm$R)))/10
 
 #Female betweenness
-btPermF <- nodePermGlmm(df = Females, n = 2, formula = b ~ (1|ID) + (1|Season))
-btPermF_pval <- (sum(btPermF$R >= btM_Females_glmm$R) + 1)/(length(btPermF$R) + 1)
+btPermF <- nodePermGlmm(df = Females, n = 10, formula = b ~ (1|ID) + (1|Season))
+btPermF_pval <- (sum(btPermF$R >= abs(btM_Females_glmm$R)) + sum(btPermF$R <= -abs(btM_Females_glmm$R)))/10
 
 #Female betweenness w/ rank
-btPermFrank <- nodePermGlmm(df = Females, n = 2, formula = b ~ rank + (1|ID) + (1|Season))
-btPermFrank_pval <- (sum(btPermFrank$R >= btM_Females_rank_glmm$R) + 1)/(length(btPermF$R) + 1)
+btPermFrank <- nodePermGlmm(df = Females, n = 10, formula = b ~ rank + (1|ID) + (1|Season))
+btPermFrank_pval <- (sum(btPermFrank$R >= abs(btM_Females_rank_glmm$R)) + sum(btPermFrank$R <= -abs(btM_Females_rank_glmm$R)))/10
 
 #Male betweenness
-btPermM <- nodePermGlmm(df = Males, n = 2, formula = b ~ (1|ID) + (1|Season))
-btPermM_pval <- (sum(btPermM$R >= btM_Males_glmm$R) + 1)/(length(btPermM$R) + 1)
+btPermM <- nodePermGlmm(df = Males, n =10, formula = b ~ (1|ID) + (1|Season))
+btPermM_pval <- (sum(btPermM$R >= abs(btM_Males_glmm$R)) + sum(btPermM$R <= -abs(btM_Males_glmm$R)))/10
 
 #Male betweenness w/ rank
-btPermMrank <- nodePermGlmm(df = Males, n = 2, formula = b ~ (1|ID) + (1|Season))
-btPermMrank_pval <- (sum(btPermM$R >= btM_Males_glmm$R) + 1)/(length(btPermM$R) + 1)
+btPermMrank <- nodePermGlmm(df = Males, n = 10, formula = b ~ (1|ID) + (1|Season))
+btPermMrank_pval <- (sum(btPermMrank$R >= abs(btM_Males_rank_glmm$R)) + sum(btPermMrank$R <= -abs(btM_Males_rank_glmm$R)))/10
 ```
 
-### Eigenvctor Centrality
+### Eigenvector Centrality
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #| message: false
 #| warning: false
+options(warning = -1, message = -1)
 #Eigenvector
-ecPerm <- nodePerm(df = allMetrics, n = 2, forumla = EC.vector ~ (1|ID) + (1|Season))
-ecPerm_pval <- (sum(ecPerm$R >= egCent$R) + 1)/(length(ecPerm$R) + 1)
+ecPerm <- nodePerm(df = allMetrics, n = 10, formula = EC.vector ~ (1|ID) + (1|Season))
+ecPerm_pval <- (sum(ecPerm$R >= abs(egCent$R)) + sum(ecPerm$R <= -abs(egCent$R)))/10
 
 #Female eigenvector
-ecPermF <- nodePerm(df = Females, n = 2, forumla = EC.vector ~ (1|ID) + (1|Season))
-ecPermF_pval <- (sum(ecPermF$R >= egCentF$R) + 1)/(length(ecPermF$R) + 1)
+ecPermF <- nodePerm(df = Females, n = 10, formula = EC.vector ~ (1|ID) + (1|Season))
+ecPermF_pval <- (sum(ecPermF$R >= abs(egCentF$R)) + sum(ecPermF$R <= -abs(egCentF$R)))/10
 
 #Female eigenvector w/ rank
-ecPermFrank <- nodePerm(df = Females, n = 2, forumla = EC.vector ~ rank + (1|ID) + (1|Season))
-ecPermFrank_pval <- (sum(ecPermFrank$R >= egCentF_rank$R) + 1)/(length(ecPermFrank$R) + 1)
+ecPermFrank <- nodePerm(df = Females, n = 10, formula = EC.vector ~ rank + (1|ID) + (1|Season))
+ecPermFrank_pval <- (sum(ecPermFrank$R >= abs(egCentF_rank$R)) + sum(ecPermFrank$R <= -abs(egCentF_rank$R)))/10
 
 #Male eigenvector
-ecPermM <- nodePerm(df = Males, n = 2, forumla = logEC ~ (1|ID) + (1|Season))
-ecPermM_pval <- (sum(ecPermM$R >= egCentM_log$R) + 1)/(length(ecPermM$R) + 1)
+ecPermM <- nodePerm(df = Males, n = 10, formula = logEC ~ (1|ID) + (1|Season))
+ecPermM_pval <- (sum(ecPermM$R >= abs(egCentM_log$R)) + sum(ecPermM$R <= -abs(egCentM_log$R)))/10
 
 #Male eigenvector w/ rank
-ecPermFrank <- nodePerm(df = Males, n = 2, forumla = logEC ~ rank + (1|ID) + (1|Season))
-ecPermFrank_pval <- (sum(ecPermMrank$R >= egCentM_rank_log$R) + 1)/(length(ecPermMrank$R) + 1)
+ecPermMrank <- nodePerm(df = Males, n = 10, formula = logEC ~ rank + (1|ID) + (1|Season))
+ecPermMrank_pval <- (sum(ecPermMrank$R >= abs(egCentM_rank_log$R)) + sum(ecPermMrank$R <= -abs(egCentM_rank_log$R)))/10
 ```
 
 ### Clustering Coefficient
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 #| message: false
 #| warning: false
 #Clustering Coefficient
-ccPerm <- nodePerm(df = allMetrics, n = 2, formula = CC ~ (1|ID) + (1|Season))
-ccPerm_pval <- (sum(ccPerm$R >= ccM$R) + 1)/(length(ccPerm$R) + 1)
+ccPerm <- nodePerm(df = allMetrics, n = 10, formula = CC ~ (1|ID) + (1|Season))
+ccPerm_pval <- (sum(ccPerm$R >= abs(ccM$R)) + sum(ccPerm$R <= -abs(ccM$R)))/10
 
 #Female CC
-ccPermF <- nodePerm(df = Females, n = 2, formula = CC ~ (1|ID) + (1|Season))
-ccPermF_pval <- (sum(ccPermF$R >= ccM_Females$R) + 1)/(length(ccPermF$R) + 1)
+ccPermF <- nodePerm(df = Females, n = 10, formula = CC ~ (1|ID) + (1|Season))
+ccPermF_pval <- (sum(ccPermF$R >= abs(ccM_Females$R)) + sum(ccPermF$R <= -abs(ccM_Females$R)))/10
 
 #Female CC w/ rank
-ccPermFrank <- nodePerm(df = Females, n = 2, formula = CC ~ rank + (1|ID) + (1|Season))
-ccPermFrank_pval <- (sum(ccPermFrank$R >= ccM_Females_rank$R) + 1)/(length(ccPermFrank$R) + 1)
+ccPermFrank <- nodePerm(df = Females, n = 10, formula = CC ~ rank + (1|ID) + (1|Season))
+ccPermFrank_pval <- (sum(ccPermFrank$R >= abs(ccM_Females_rank$R)) + sum(ccPermFrank$R <= -abs(ccM_Females_rank$R)))/10
 
 #Male CC
-ccPermM <- nodePerm(df = Males, n = 2, formula = CC ~ (1|ID) + (1|Season))
-ccPermM_pval <- (sum(ccPermM$R >= ccM_Males$R) + 1)/(length(ccPermM$R) + 1)
+ccPermM <- nodePerm(df = Males, n = 10, formula = CC ~ (1|ID) + (1|Season))
+ccPermM_pval <- (sum(ccPermM$R >= abs(ccM_Males$R)) + sum(ccPermM$R <= -abs(ccM_Males$R)))/10
 
 #Male CC w/ rank
-ccPermMrank <- nodePerm(df = Males, n = 2, formula = CC ~ rank + (1|ID) + (1|Season))
-ccPermMrank_pval <- (sum(ccPermMrank$R >= ccM_Males_rank$R) + 1)/(length(ccPermMrank$R) + 1)
+ccPermMrank <- nodePerm(df = Males, n = 10, formula = CC ~ rank + (1|ID) + (1|Season))
+ccPermMrank_pval <- (sum(ccPermMrank$R >= abs(ccM_Males_rank$R)) + sum(ccPermMrank$R <= -abs(ccM_Males_rank$R)))/10
 ```
+
+### Adding to Results
+
+Now we will add all of these p-values to the results table I made earlier
+
+```{r}
+allResults <- allResults |>
+  mutate(p = c(inDegPval, inDegPermF_pval, inDegPermFrank_pval, inDegPermM_pval, inDegPermMrank_pval, outDegPval, outDegPermF_pval, outDegPermFrank_pval, outDegPermM_pval, outDegPermMrank_pval, inStrengthPerm_pval, inStrengthPermF_pval, inStrengthPermFrank_pval, inStrengthPermM_pval, inStrengthPermMrank_pval, outStrengthPerm_pval, outStrengthPermF_pval, outStrengthPermFrank_pval, outStrengthPermM_pval, outStrengthPermMrank_pval, ecPerm_pval, ecPermF_pval, ecPermFrank_pval, ecPermM_pval, ecPermMrank_pval, ccPerm_pval, ccPermF_pval, ccPermFrank_pval, ccPermM_pval, ccPermMrank_pval, btPerm_pval, btPermF_pval, btPermFrank_pval, btPermM_pval, btPermMrank_pval))
+allResults
+```
+
+Here is table 2 again so we can compare the p-values from the original study to the p-values I generated
+
+![](Images/Table2.png){fig-align="center"}
 
 ## Correlating Metrics
 
-The study used Spearman rank correlations to assess for collinearity between each pair of network metrics. The results can be found in Table 1 of the original study.
+The study used Spearman rank correlations to assess for collinearity between each pair of network metrics. First I created a data frame to store all the network metrics data only, and then passed it through the cor() function from {stats} and with the method argument set to "spearman". I will use the cor_pmat() function from {rstatix} package to calculate the p-values associated with each pair of metrics. The results can be compared to Table 1 of the original study.
 
 ```{r}
 #| message: false
 #| warning: false
 network_metrics <- data.frame(In.Degree = allMetrics$In.Degree, Out.Degree = allMetrics$Out.Degree, In.Strength = allMetrics$In.Strength, Out.Strength = allMetrics$Out.Strength, Eigenvector = allMetrics$EC.vector, Cluster = allMetrics$CC, Between = allMetrics$b)
 spearCor <- cor(network_metrics, method = "spearman")
+
+spearCor_p <- cor_pmat(
+  data = network_metrics,
+  vars = NULL,
+  method = "spearman",
+  alternative = "two.sided",
+  conf.level = 0.95)
+
 spearCor
+spearCor_p
 ```
+
+![](Images/Table1.png)
 
 ## Rank and Sex Models
 
@@ -939,6 +947,8 @@ nodePermGlmmRank <- function(df, n, formula){
 
 ### Sex (G)LMMs
 
+Here, I now am running both each lmer() model with Sex as a fixed effect and then running the node-based permutation to then calculate the p-value. The est variable temporarily hold the original estimate for each model to compare to the permuted estimates to get the p-value
+
 ```{r}
 #| message: false
 #| warning: false
@@ -946,58 +956,78 @@ nodePermGlmmRank <- function(df, n, formula){
 #In/Out Degree
 inD_sex <- lmer(In.Degree ~ (1|ID) + (1|Season) + Sex,
                 data = allMetrics)
-summary(inD_sex)
-est <- fixef(inD_sex)["SexM"]
+
+x <- summary(inD_sex)
+inD_c <- x$coefficients
+
+est <- inD_c["SexM", "Estimate"]
 p <- nodePermSex(allMetrics, n = 1000, formula = In.Degree ~ (1|ID) + (1|Season) + Sex)
-inDp <- mean(abs(p$perm_est) >= abs(est))
+inDp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 outD_sex <- lmer(Out.Degree ~ (1|ID) + (1|Season) + Sex,
                  data = allMetrics)
-summary(outD_sex)
-est <- fixef(outD_sex)["SexM"]
+x <- summary(outD_sex)
+outD_c <- x$coefficients
+est <- outD_c["SexM", "Estimate"]
 p <- nodePermSex(allMetrics, n = 1000, formula = Out.Degree ~ (1|ID) + (1|Season) + Sex)
-outDp <- mean(abs(p$perm_est) >= abs(est))
+outDp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
+
 #In/Out Strength
 inS_sex <- lmer(In.Strength ~ (1|ID) + (1|Season) + Sex,
                 data = allMetrics)
-summary(inS_sex)
-est <- fixef(inS_sex)["SexM"]
+x <- summary(inS_sex)
+inS_c <- x$coefficients
+est <- inS_c["SexM", "Estimate"]
 p <- nodePermSex(allMetrics, n = 1000, formula = In.Strength ~ (1|ID) + (1|Season) + Sex)
-inSp <- mean(abs(p$perm_est) >= abs(est))
+inSp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 outS_sex <- lmer(Out.Strength ~ (1|ID) + (1|Season) + Sex,
                  data = allMetrics)
-summary(outS_sex)
-est <- fixef(outS_sex)["SexM"]
+x <- summary(outS_sex)
+outS_c <- x$coefficients
+est <- outS_c["SexM", "Estimate"]
 p <- nodePermSex(allMetrics, n = 1000, formula = Out.Strength ~ (1|ID) + (1|Season) + Sex)
-outSp <- mean(abs(p$perm_est) >= abs(est))
+outSp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
+
 #Eigenvector Centrality
 eg_sex <- lmer(EC.vector ~ (1|ID) + (1|Season) + Sex,
                data = allMetrics)
-summary(eg_sex)
-est <- fixef(eg_sex)["SexM"]
+x <- summary(eg_sex)
+eg_c <- x$coefficients
+est <- eg_c["SexM", "Estimate"]
 p <- nodePermSex(allMetrics, n = 1000, formula = EC.vector ~ (1|ID) + (1|Season) + Sex)
-EGp <- mean(abs(p$perm_est) >= abs(est))
+EGp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
+
 #Betweenness
 allMetrics <- allMetrics |>
   mutate(observation.id = factor(1:nrow(allMetrics)))
 bt_sex <- glmer(b ~ (1|ID) + (1|Season) + (1|observation.id) + Sex,
                 data = allMetrics,
                 family = poisson)
-summary(bt_sex)
-est <- fixef(bt_sex)["SexM"]
+x <- summary(bt_sex)
+bt_c <- x$coefficients
+est <- bt_c["SexM", "Estimate"]
 p <- nodePermGlmmSex(allMetrics, n = 1000, formula = b ~ (1|ID) + (1|Season) + Sex)
-BTp <- mean(abs(p$perm_est) >= abs(est))
+BTp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
+
 #Clustering Coefficient
 cc_sex <- lmer(CC ~ (1|ID) + (1|Season) + Sex,
                data = allMetrics)
-summary(cc_sex)
-est <- fixef(cc_sex)["SexM"]
+x <- summary(cc_sex)
+cc_c <- x$coefficients
+est <- cc_c["SexM", "Estimate"]
 p <- nodePermSex(allMetrics, n = 1000, formula = CC ~ (1|ID) + (1|Season) + Sex)
-CCp <- mean(abs(p$perm_est) >= abs(est))
+CCp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
-print(paste("In-Degree p-value:", inDp, "; Out-Degree p-value:", outDp, "; In-Strength p-value:", inSp, "; Out-Strength p-value:", outSp, "; Eigenvector p-value:", EGp, "; Betweenness p-value:", BTp, "; Clustering Coefficient p-value:", CCp))
+print(paste("In-Degree p-value:", inDp, "; Out-Degree p-value:", outDp, "; In-Strength p-value:", inSp, "; Out-Strength p-value:", outSp, "; Eigenvector p-value:", EGp, "; Clustering Coefficient p-value:", CCp, "; Betweenness p-value:", BTp))
+
+sexResults <- data.frame(Metric.Sample = c("In-Degree", "Out-Degree", "In-Strength", "Out.Strength", "Eigenvector", "Clustering Coefficient", "Betweennes"), Estimate = c(inD_c["SexM", "Estimate"], outD_c["SexM", "Estimate"], inS_c["SexM", "Estimate"], outS_c["SexM", "Estimate"], eg_c["SexM", "Estimate"], cc_c["SexM", "Estimate"], bt_c["SexM", "Estimate"]), Standard.Error = c(inD_c["SexM", "Std. Error"], outD_c["SexM", "Std. Error"], inS_c["SexM", "Std. Error"], outS_c["SexM", "Std. Error"], eg_c["SexM", "Std. Error"], cc_c["SexM", "Std. Error"], bt_c["SexM", "Std. Error"]), p = c(inDp, outDp, inSp, outSp, EGp, CCp, BTp))
+sexResults
 ```
+
+The results calculate above are meant to reflect those found in Table 3. My results appear to differ from what the original study found. This may point out an area where the methods of the study were not specific enough to fully replicate as I will discuss later.
+
+![](images/Table3.png)
 
 ### Rank (G)LMMs
 
@@ -1008,42 +1038,52 @@ print(paste("In-Degree p-value:", inDp, "; Out-Degree p-value:", outDp, "; In-St
 #In-Degree
 inDF_rank <- lmer(In.Degree ~ (1|ID) + (1|Season) + rank,
                   data = Females)
-summary(inDF_rank)
-est <- fixef(inDF_rank)["rank"]
+x <- summary(inDF_rank)
+inDF_rankc <- x$coefficients
+
+est <- inDF_rankc["rank", "Estimate"]
 p <- nodePermRank(Females, n = 1000, formula = In.Degree ~ (1|ID) + (1|Season) + rank)
-inDFrankp <- mean(abs(p$perm_est) >= abs(est))
+inDFrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Out-Degree
 outDF_rank <- lmer(Out.Degree ~ (1|ID) + (1|Season) + rank,
                    data = Females)
-summary(outDF_rank)
-est <- fixef(outDF_rank)["rank"]
+x <- summary(outDF_rank)
+outDF_rankc <- x$coefficients
+
+est <- outDF_rankc["rank", "Estimate"]
 p <- nodePermRank(Females, n = 1000, formula = Out.Degree ~ (1|ID) + (1|Season) + rank)
-outDFrankp <- mean(abs(p$perm_est) >= abs(est))
+outDFrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #In-Strength
 inSF_rank <- lmer(In.Strength ~ (1|ID) + (1|Season) + rank,
                   data = Females)
-summary(inSF_rank)
-est <- fixef(inSF_rank)["rank"]
+x <- summary(inSF_rank)
+inSF_rankc <- x$coefficients
+
+est <- inSF_rankc["rank", "Estimate"]
 p <- nodePermRank(Females, n = 1000, formula = In.Strength ~ (1|ID) + (1|Season) + rank)
-inSFrankp <- mean(abs(p$perm_est) >= abs(est))
+inSFrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Out-Strength
 outSF_rank <- lmer(Out.Strength ~ (1|ID) + (1|Season) + rank,
                    data = Females)
-summary(outSF_rank)
-est <- fixef(outSF_rank)["rank"]
+x <- summary(outSF_rank)
+outSF_rankc <- x$coefficients
+
+est <- outSF_rankc["rank", "Estimate"]
 p <- nodePermRank(Females, n = 1000, formula = Out.Strength ~ (1|ID) + (1|Season) + rank)
-outSFrankp <- mean(abs(p$perm_est) >= abs(est))
+outSFrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Eigenvector
 egF_rank <- lmer(EC.vector ~ (1|ID) + (1|Season) + rank,
                  data = Females)
-summary(egF_rank)
-est <- fixef(egF_rank)["rank"]
+x <- summary(egF_rank)
+egF_rankc <- x$coefficients
+
+est <- egF_rankc["rank", "Estimate"]
 p <- nodePermRank(Females, n = 1000, formula = EC.vector ~ (1|ID) + (1|Season) + rank)
-egFrankp <- mean(abs(p$perm_est) >= abs(est))
+egFrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Betweenness
 Females <- Females |>
@@ -1051,18 +1091,22 @@ Females <- Females |>
 btF_rank <- glmer(b ~ (1|ID) + (1|Season) + (1|observation.id) + rank,
                   data = Females,
                   family = poisson)
-summary(btF_rank)
-est <- fixef(btF_rank)["rank"]
+x <- summary(btF_rank)
+btF_rankc <- x$coefficients
+
+est <- btF_rankc["rank", "Estimate"]
 p <- nodePermGlmmRank(Females, n = 1000, formula = b ~ (1|ID) + (1|Season) + (1|observation.id) + rank)
-btFrankp <- mean(abs(p$perm_est) >= abs(est))
+btFrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Clustering coefficient
 ccF_rank <- lmer(CC ~ (1|ID) + (1|Season) + rank,
                  data = Females)
-summary(ccF_rank)
-est <- fixef(ccF_rank)["rank"]
+x <- summary(ccF_rank)
+ccF_rankc <- x$coefficients
+
+est <- ccF_rankc["rank", "Estimate"]
 p <- nodePermRank(Females, n = 1000, formula = CC ~ (1|ID) + (1|Season) + rank)
-ccFrankp <- mean(abs(p$perm_est) >= abs(est))
+ccFrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 print(paste("Female p-values: In-Degree p-value:", inDFrankp, "; Out-Degree p-value:", outDFrankp, "; In-Strength p-value:", inSFrankp, "; Out-Strength p-value:", outSFrankp, "; Eigenvector p-value:", egFrankp, "; Betweenness p-value:", btFrankp, "; Clustering Coefficient p-value:", ccFrankp))
 #########################################################################################################################################################################################################################################################
@@ -1070,42 +1114,52 @@ print(paste("Female p-values: In-Degree p-value:", inDFrankp, "; Out-Degree p-va
 #In-degree
 inDM_rank <- lmer(In.Degree ~ (1|ID) + (1|Season) + rank,
                   data = Males)
-summary(inDM_rank)
-est <- fixef(inDM_rank)["rank"]
+x <- summary(inDM_rank)
+inDM_rankc <- x$coefficients
+
+est <- inDM_rankc["rank", "Estimate"]
 p <- nodePermRank(Males, n = 1000, formula = In.Degree ~ (1|ID) + (1|Season) + rank)
-inDMp <- mean(abs(p$perm_est) >= abs(est))
+inDMrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Out-degree
 outDM_rank <- lmer(Out.Degree ~ (1|ID) + (1|Season) + rank,
                    data = Males)
-summary(outDF_rank)
-est <- fixef(outDM_rank)["rank"]
+x <- summary(outDM_rank)
+outDM_rankc <- x$coefficients
+
+est <- outDM_rankc["rank", "Estimate"]
 p <- nodePermRank(Males, n = 1000, formula = Out.Degree ~ (1|ID) + (1|Season) + rank)
-outDMp <- mean(abs(p$perm_est) >= abs(est))
+outDMrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #In-Stength
 inSM_rank <- lmer(In.Strength ~ (1|ID) + (1|Season) + rank,
                   data = Males)
-summary(inSM_rank)
-est <- fixef(inSM_rank)["rank"]
+x <- summary(inSM_rank)
+inSM_rankc <- x$coefficients
+
+est <- inDM_rankc["rank", "Estimate"]
 p <- nodePermRank(Males, n = 1000, formula = In.Strength ~ (1|ID) + (1|Season) + rank)
-inSMp <- mean(abs(p$perm_est) >= abs(est))
+inSMrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Out-Strength
 outSM_rank <- lmer(Out.Strength ~ (1|ID) + (1|Season) + rank,
                    data = Males)
-summary(outSM_rank)
-est <- fixef(outSM_rank)["rank"]
+x <- summary(outSM_rank)
+outSM_rankc <- x$coefficients
+
+est <- outSM_rankc["rank", "Estimate"]
 p <- nodePermRank(Males, n = 1000, formula = Out.Strength ~ (1|ID) + (1|Season) + rank)
-outSMp <- mean(abs(p$perm_est) >= abs(est))
+outSMrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Eigenvector
 egM_rank <- lmer(EC.vector ~ (1|ID) + (1|Season) + rank,
                  data = Males)
-summary(egM_rank)
-est <- fixef(egM_rank)["rank"]
+x <- summary(egM_rank)
+egM_rankc <- x$coefficients
+
+est <- egM_rankc["rank", "Estimate"]
 p <- nodePermRank(Males, n = 1000, formula = EC.vector ~ (1|ID) + (1|Season) + rank)
-egMrankp <- mean(abs(p$perm_est) >= abs(est))
+egMrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Betweenness
 Males <- Males |>
@@ -1113,24 +1167,107 @@ Males <- Males |>
 btM_rank <- glmer(b ~ (1|ID) + (1|Season) + (1|observation.id) + rank,
                   data = Males,
                   family = poisson)
-summary(btM_rank)
-est <- fixef(btM_rank)["rank"]
+x <- summary(btM_rank)
+btM_rankc <- x$coefficients
+
+est <- btM_rankc["rank", "Estimate"]
 p <- nodePermGlmmRank(Males, n = 1000, formula = b ~ (1|ID) + (1|Season) + (1|observation.id) + rank)
-btMrankp <- mean(abs(p$perm_est) >= abs(est))
+btMrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
 
 #Clustering coefficient
 ccM_rank <- lmer(CC ~ (1|ID) + (1|Season) + rank,
                  data = Males)
-summary(ccM_rank)
-est <- fixef(ccM_rank)["rank"]
-p <- nodePermRank(Males, n = 1000, formula = CC ~ (1|ID) + (1|Season) + rank)
-ccMrankp <- mean(abs(p$perm_est) >= abs(est))
+x <- summary(ccM_rank)
+ccM_rankc <- x$coefficients
 
-print(paste("Male p-values: In-Degree p-value:", inDMrankp, "; Out-Degree p-value:", outDMrankp, "; In-Strength p-value:", inSMrankp, "; Out-Strength p-value:", outSMrankp, "; Eigenvector p-value:", egMrankp, "; Betweenness p-value:", btMrankp, "; Clustering Coefficient p-value:", ccMrankp))
+est <- ccM_rankc["rank", "Estimate"]
+p <- nodePermRank(Males, n = 1000, formula = CC ~ (1|ID) + (1|Season) + rank)
+ccMrankp <- (sum(p$perm_est >= abs(est)) + sum(p$perm_est <= -abs(est)))/1000
+
+print(paste("Male p-values: In-Degree p-value:", inDMrankp, "; Out-Degree p-value:", outDMrankp, "; In-Strength p-value:", inSMrankp, "; Out-Strength p-value:", outSMrankp, "; Eigenvector p-value:", egMrankp, "; Clustering Coefficient p-value:", ccMrankp, "; Betweenness p-value:", btMrankp))
+
+rankResults <- data.frame(Metric.Sample = c("In-Degree Females", "In-Degree Males", "Out-Degree Females", "Out-Degree Males", "In-Strength Females", "In-Strength Males", "Out-Strength Females", "Out-Strength Males", "Eigenvector Females", "Eigenvector Males", "Clustering Coefficient Females", "Clustering Coefficient Males", "Betweenness", "Betweenness"), Estimate = c(inDF_rankc["rank", "Estimate"], inDM_rankc["rank", "Estimate"], outDF_rankc["rank", "Estimate"], outDM_rankc["rank", "Estimate"], inSF_rankc["rank", "Estimate"], inSM_rankc["rank", "Estimate"], outSF_rankc["rank", "Estimate"], outSM_rankc["rank", "Estimate"], egF_rankc["rank", "Estimate"], egM_rankc["rank", "Estimate"], ccF_rankc["rank", "Estimate"], ccM_rankc["rank", "Estimate"],btF_rankc["rank", "Estimate"], btM_rankc["rank", "Estimate"]), Standard.Error = c(inDF_rankc["rank", "Std. Error"], inDM_rankc["rank", "Std. Error"], outDF_rankc["rank", "Std. Error"], outDM_rankc["rank", "Std. Error"], inSF_rankc["rank", "Std. Error"], inSM_rankc["rank", "Std. Error"], outSF_rankc["rank", "Std. Error"], outSM_rankc["rank", "Std. Error"], egF_rankc["rank", "Std. Error"], egM_rankc["rank", "Std. Error"], ccF_rankc["rank", "Std. Error"], ccM_rankc["rank", "Std. Error"],btF_rankc["rank", "Std. Error"], btM_rankc["rank", "Std. Error"]), p = c(inDFrankp, inDMrankp, outDFrankp, outDMrankp, inSFrankp, inSMrankp, outSFrankp, outSMrankp, egFrankp, egMrankp, ccFrankp, ccMrankp, btFrankp, btMrankp))
+rankResults
 ```
 
-## Replication Successes
+These results are mean to mirror those of table 4. My results here, similar to the models I ran for sex, are different from the original study and show again how the methods may not have been clear enough to fully replicate.
 
-In replicating this study, I was able to (i) create social grooming networks for each of the three seasons, (ii) calculate the 7 metrics used, (iii) plot changes in these metrics over the three seasons and between sexes, (iv) calculate the repeatability of each metric across time using formulas in the {rptR} package.
+![](images/Table4.png)
 
-## Replication Challenges
+## Replication Successes, Challenges, and Shortcoming
+
+In replicating this study, I was able to (i) create social grooming networks for each of the three seasons, (ii) calculate the 7 metrics used, (iii) plot changes in these metrics over the three seasons and between sexes, (iv) calculate the repeatability of each metric across time using formulas in the {rptR} package, and (v) calculate the effects of sex and rank differences on network metrics. My results were most successful at replicating the repeatability estimates and confidence intervals, plotting the network metrics, and calculating the spearman rank correlation.
+
+For the most part, I faced very few challenges in replicating this analysis. The article had a readme file attached with it which made it very clear what each data file was so I had no confusion determining which data to use for the analysis. Additionally, the article made it clear what packages were used for the bulk of the analysis, particurally {igraph}, {rptR}, and {lme4}. Using these as a starting point, I was able to estimate what functions were used after looking at the documentation, studies references, and comparing the results I got to the original ones. For other aspects of the analysis, such as the plots and spearman correlation, I used proir knowledge with {ggplot2} and {cowplot} along with some googling to determine the best way to calculate the spearman correlation and p-values. The one challenge I had for a little while was determining how to do the node-based permutation. I had a difficult time wrapping my head around how exactly to code it for a minute but eventually determined that the rpt() function needed to be nested within a standard permutation loop. Also related to the node based permutations, I ran mine with 10 permutations rather than 1000 due to time contraints, and thus my p-values for the repeatability of network metrics are different from the original study.
+
+While I was successful in running the different analyses used, I got some conflicting results. Going all the way back to calculating the network metrics, my clustering coefficient values did not match those in the original study. I started with the transitivity() function from {igraph} and then tried some methods using different packages and data formats but continued to get the same result. It was indicated in the study that {igraph} was used to calculate all the metrics, so I assumed that was the proper function to use. It was not clear in the original study what method could have also been used to calculate this. Since my clustering coefficient values were off, subsequent analysis of repeatability and the effects of dominance rank and sex were also off. The (G)LMMs to test the effects of sex and dominance rank were also off when I ran my analysis. While the methods listed how the formula should be sex up (metric \~ (1\|ID) + (1\|Season) + sex or rank) it did not list any other specifications for the lmer() or glmer() functions. My analysis results might differ from the original results due to different functions used to calculate the clustering coefficient and/or the (G)LMMs. I also may not have used all the proper parameters for the (G)LMMs which may be why they values are different.
+
+## Directory
+
+Below is a table of the different variables created and what they each represent. Variables are listed in the order they appear in the code
+
+| Variable | Definition |
+|------------------------------------|------------------------------------|
+| f, f1, f2, f3 | Holds links to initial datasets stored in github repo |
+| elo | Dataset associated with f which holds demographic and seasonal ranking information for each individual in the data set |
+| s1, s2, s3 | Grooming dyads for each of the three seasons and data on how long each grooming dyad took place |
+| com | All three seasons data compiled into a single dataframe |
+| s1edges, s2edges, s3edges | The edge widths determined by grooming rate for each dyad which is used to create each seasons social network |
+| s1G, s2G, s3G | Directed {igraph} network for each of the three seasons |
+| nsize1, nsize2, nsize3 | Variable to calculate and store the size of each node in the network plots based on unweighted degree |
+| s1p, s2p, s3p | Plotted {igraph} social networks |
+| s1Metrics, s2Metrics, s3Metrics | Data frames storing the network metrics of each individual per season |
+| allMetrics | Compiled data frame of each seasons metrics |
+| Females, Males | Data frame containing the network metrics of individuals based on their sex (female or male) |
+| IndivDescrip | Mean and standard deviations for each individuals set of network metrics |
+| SeasonDescrip | Mean and standard deviations for each network metric grouped by sex and season |
+| InDegreePlot, OutDegreePlot, InStrengthPlot, OutStrengthPlot, betweenPlot, eigenPlot, clusterPlot | Line graphs plotting each individuals variation in network metric across the three seasons |
+| inD, outD, inS, outS, clust, eigen, between | Boxplots showing range of values for each metrics per sex per season |
+| cowplot, cowplot1 | Grid plots which contain all the line graphs and boxplots respectively |
+| IOm, IOmF, IOmF_rank, IOmM, IOmM_rank | In-degree repeatabiliy models for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| IOmOut, ioOutFemales, ioOutFemales_rank | Out-degree repeatabiliy models for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| inStrength, inStrengthF, inStrengthF_rank, inStrengthM, inStrengthM_rank | In-strength repeatabiliy models for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| outStrength, outStrengthF, outStrengthF_rank, outStrengthM_log, outStrengthM_rank_log | Out-strength repeatabiliy models for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| egCent, egCentF, egCentF_rank, egCentM_log, egCentM_rank_log | Eigenvector centrality repeatabiliy models for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| ccM, ccM_Females, ccM_Females_rank, ccM_Males, ccM_Males_rank | Clustering Coefficient repeatabiliy models for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| btM_glmm, btM_Females_glmm, btM_Females_rank_glmm, btM_Males_glmm, btM_Males_rank_glmm | Betweenness repeatabiliy models for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| getR, getRB | Functions to extract the repeatability estimate and confidence intervals from the rpt() and rptPoisson() models respectively |
+| models | List of all the repeatabiliy models using rpt() |
+| results | Data frame storing the repeatability estimate and confidence intervals of each model |
+| modelsB | Betweenness models which used rptPoisson() |
+| resultsB | Data frame storing the repeatabiliy estimate and confidence intervals for the betweenness models |
+| allResults | Compiled data frame all the results of all the models |
+| nodePerm, nodePermGlmm | Functions for running node based permutations on each metric for the repeatability models |
+| inDegPerm, inDegF, inDegFrank, inDegM, inDegMrank | In-degree node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| inDegPval, inDegPermF_pval, inDegPermFrank_pval, inDegPermM_pval, inDegPermMrank_pval | In-degree p-values based on node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| outDegPerm, outDegPermF, outDegPermFrank, outDegPermM, outDegPermMrank | Out-degree node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| outDegPval, outDegPermF_pval, outDegPermFrank_pval, outDegPermM_pval, outDegPermMrank_pval | Out-degree p-values based on node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| inStrengthPerm, inStrengthPermF, inStrengthPermFrank, inStrengthPermM, inStrengthPermMrank | In-strength node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| inStrengthPerm_pval, inStrengthPermF_pval, inStrengthPermFrank_pval, inStrengthPermM_pval, inStrengthPermMrank_pval | In-strength p-values based on node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| outStrengthPerm, outStrengthPermF, outStrengthPermFrank, outStrengthPermM, outStrengthPermMrank | Out-strength node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| outStrengthPerm_pval, outStrengthPermF_pval, outStrengthPermFrank_pval, outStrengthPermM_pval, outStrengthPermMrank_pval | Out-strength p-values based on node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| ecPerm, ecPermF, ecPermFrank, ecPermM, ecPermMrank | Eigenvector node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| ecPerm_pval, ecPermF_pval, ecPermFrank_pval, ecPermM_pval, ecPermMrank_pval | Eigenvector p-values based on node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| btPerm, btPermF, btPermFrank, btPermM, btPermMrank | Betweenness node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| btPerm_pval, btPermF_pval, btPermFrank_pval, btPermM_pval, btPermMrank_pval | Betweenness p-values based on node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| ccPerm, ccPermF, ccPermFrank, ccPermM, ccPermMrank | Clustering Coefficient node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| ccPerm_pval, ccPermF_pval, ccPermFrank_pval, ccPermM_pval, ccPermMrank_pval | Clustering Coefficient p-values based on node based permutations for all individuals, females, females with rank as a fixed effect, males, and males with rank as a fixed effect |
+| network_metrics | Data frame containing just the network metrics for correlation |
+| spearCor | Spearman's rank correlation of all 7 network metrics |
+| spearCor_p | P-values associated with the spearman correlation for each pair of metric correlations |
+| nodePermSex, nodePermGlmmSex | Functions for running node-based permutations of each metric with sex being shuffled |
+| nodePermRank, notPermGlmmRank | Functions for running node-based permutations of each metric with rank being shuffled |
+| inD_sex, outD_sex, inS_sex, outS_sex, eg_sex, bt_sex, cc_sex | Variables holding the (G)LMMs run for in-degree, out-degree, in-strength, out-strength, eigenvector, betweenness, and clustering coefficient with sex as a fixed effect |
+| x | Temporary variable to hold the summary of each (G)LMMs for models ran with sex or rank as a fixed effect |
+| inD_c, outD_c, inS_c, outS_c, eg_c, bt_c, cc_c | Variables storing the coefficients for each (G)LMM model with sex as a fixed effect |
+| est | Temporary variable holding the estimate value of each (G)LMM model ran with sex or rank as a fixed effect |
+| p | Temporary variable holding the sex or rank node based permutation function for each metric. |
+| inDp, outDp, inSp, outSp, EGp, BTp, CCp | Variables which hold the p-value calculated after running the node based permutation test for in-degree, out-degree, in-strength, out-strength, eigenvector, betweenness, and clustering coefficient |
+| sexResults | Data frame storing the estimates, standard error, and p-value for each of the (G)LMMs ran with sex as a fixed effect |
+| inDF_rank, outDF_rank, inSF_rank, outSF_rank, egF_rank, btF_rank, ccF_rank | Variables which hold the results of (G)LMMs for female in-degree, out-degree, in-strength, out-strenght, eigenvector, betweenness, and clustering coefficient with rank as a fixed effect |
+| inDF_rankc, outDF_rankc, inSF_rankc, outSF_rankc, egF_rankc, btF_rankc, ccF_rankc | Variables holding the coefficients generated by the (G)LMMs for female in-degree, out-degree, in-strength, out-strenght, eigenvector, betweenness, and clustering coefficient with rank as a fixed effect |
+| inDFrankp, outDFrankp, inSFrankp, outSFrankp, egFrankp, btFrankp, ccFrankp | Variables storing the p-value calculated after comparing the values of the node based permutation with the original estimates for female in-degree, out-degree, in-strength, out-strenght, eigenvector, betweenness, and clustering coefficient with rank as a fixed effect |
+| inDM_rank, outDM_rank, inSM_rank, outSM_rank, egM_rank, btM_rank, ccM_rank | Variables which hold the results of (G)LMMs for male in-degree, out-degree, in-strength, out-strenght, eigenvector, betweenness, and clustering coefficient with rank as a fixed effect |
+| inDM_rankc, outDM_rankc, inSM_rankc, outSM_rankc, egM_rankc, btM_rankc, ccM_rankc | Variables holding the coefficients generated by the (G)LMMs for male in-degree, out-degree, in-strength, out-strenght, eigenvector, betweenness, and clustering coefficient with rank as a fixed effect |
+| inDMrankp, outDMrankp, inSMrankp, outSMrankp, egMrankp, btMrankp, ccMrankp | Variables storing the p-value calculated after comparing the values of the node based permutation with the original estimates for male in-degree, out-degree, in-strength, out-strenght, eigenvector, betweenness, and clustering coefficient with rank as a fixed effect |
+| rankResults | Data frame storing the estimates, standard errors, and p-values for each (G)LMM run on the network metrics |
