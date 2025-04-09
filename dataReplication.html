@@ -88,6 +88,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#analysis" id="toc-analysis" class="nav-link" data-scroll-target="#analysis">Analysis</a></li>
   <li><a href="#conclusions" id="toc-conclusions" class="nav-link" data-scroll-target="#conclusions">Conclusions</a></li>
   </ul></li>
+  <li><a href="#replication" id="toc-replication" class="nav-link" data-scroll-target="#replication">Replication</a></li>
   <li><a href="#tools" id="toc-tools" class="nav-link" data-scroll-target="#tools">Tools</a></li>
   <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
   <li><a href="#adjustments" id="toc-adjustments" class="nav-link" data-scroll-target="#adjustments">Adjustments</a></li>
@@ -174,6 +175,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="conclusions">Conclusions</h3>
 <p>Blaszczyk found that, based on the repeatability of each network metric, vervet monkey social network position was consistent over the three seasons. Grooming in-strength, out-strength, eigenvector centrality, and in-degree were the most repeatable for both sexes. Betweenness showed no consistency across seasons for both sexes. Only males were consistent in out-degree and clustering coefficients.</p>
 </section>
+</section>
+<section id="replication" class="level2">
+<h2 class="anchored" data-anchor-id="replication">Replication</h2>
+<p>I will be replicating the calculations of the network metrics, the visualizations of the social networks per season, the visualizations of the network metrics across seasons, the repeatability estimates of each network, the node-based permutations of each metric, the spearmans rank correlation of the network metrics, and the models of the effects of rank and sex on network metrics.</p>
 </section>
 <section id="tools" class="level2">
 <h2 class="anchored" data-anchor-id="tools">Tools</h2>
@@ -269,30 +274,29 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="season-1" class="level3">
 <h3 class="anchored" data-anchor-id="season-1">Season 1</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Season 1</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>s1Edges <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">from =</span> s1<span class="sc">$</span><span class="st">"Actor"</span>, <span class="at">to =</span> s1<span class="sc">$</span><span class="st">"Recip"</span>, <span class="at">weight =</span> s1<span class="sc">$</span>groom.rate)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>s1G <span class="ot">&lt;-</span> <span class="fu">graph_from_data_frame</span>(<span class="at">d =</span> s1Edges, <span class="at">directed =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>nsize1 <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">15</span><span class="sc">*</span>(<span class="fu">degree</span>(s1G)<span class="sc">/</span><span class="fu">max</span>(<span class="fu">degree</span>(s1G)))</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a><span class="fu">V</span>(s1G)<span class="sc">$</span>color <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">V</span>(s1G)<span class="sc">$</span>name, <span class="cf">function</span>(name) {</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  row <span class="ot">&lt;-</span> <span class="fu">which</span>(elo<span class="sc">$</span>ID <span class="sc">==</span> name)</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(elo<span class="sc">$</span>Sex[row] <span class="sc">==</span> <span class="st">"F"</span>) {</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"white"</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"gray"</span></span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>s1p <span class="ot">&lt;-</span> <span class="fu">plot.igraph</span>(s1G, </span>
-<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.shape =</span> <span class="st">"circle"</span>,</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.size =</span> nsize1,</span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.color =</span> <span class="fu">V</span>(s1G)<span class="sc">$</span>color,</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.label =</span> <span class="st">""</span>,</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">edge.arrow.size =</span> <span class="fl">0.3</span>,</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">edge.curved =</span> .<span class="dv">5</span>,</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>            <span class="at">main =</span> <span class="fu">c</span>(<span class="st">"Season 1"</span>,</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>            <span class="st">"March - May"</span>,</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>            <span class="st">"FOH = 497"</span>, <span class="st">" ND = 0.45"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>s1Edges <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">from =</span> s1<span class="sc">$</span><span class="st">"Actor"</span>, <span class="at">to =</span> s1<span class="sc">$</span><span class="st">"Recip"</span>, <span class="at">weight =</span> s1<span class="sc">$</span>groom.rate)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>s1G <span class="ot">&lt;-</span> <span class="fu">graph_from_data_frame</span>(<span class="at">d =</span> s1Edges, <span class="at">directed =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>nsize1 <span class="ot">&lt;-</span> <span class="dv">5</span> <span class="sc">+</span> <span class="dv">15</span><span class="sc">*</span>(<span class="fu">degree</span>(s1G)<span class="sc">/</span><span class="fu">max</span>(<span class="fu">degree</span>(s1G)))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">V</span>(s1G)<span class="sc">$</span>color <span class="ot">&lt;-</span> <span class="fu">sapply</span>(<span class="fu">V</span>(s1G)<span class="sc">$</span>name, <span class="cf">function</span>(name) {</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  row <span class="ot">&lt;-</span> <span class="fu">which</span>(elo<span class="sc">$</span>ID <span class="sc">==</span> name)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(elo<span class="sc">$</span>Sex[row] <span class="sc">==</span> <span class="st">"F"</span>) {</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"white"</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"gray"</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>s1p <span class="ot">&lt;-</span> <span class="fu">plot.igraph</span>(s1G, </span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.shape =</span> <span class="st">"circle"</span>,</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.size =</span> nsize1,</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.color =</span> <span class="fu">V</span>(s1G)<span class="sc">$</span>color,</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">vertex.label =</span> <span class="st">""</span>,</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">edge.arrow.size =</span> <span class="fl">0.3</span>,</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>            <span class="at">edge.curved =</span> .<span class="dv">5</span>,</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>            <span class="at">main =</span> <span class="fu">c</span>(<span class="st">"Season 1"</span>,</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">"March - May"</span>,</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>            <span class="st">"FOH = 497"</span>, <span class="st">" ND = 0.45"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -655,11 +659,11 @@ ID (26 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-   0.31  0.146  0.108   0.64       NA      0
+   0.31  0.141  0.102  0.619       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.352  0.343  0.108   0.64
+boot     1000  0.342  0.335  0.102  0.619
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -691,11 +695,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.251  0.154 0.0443  0.617       NA      0
+  0.251  0.155 0.0535  0.623       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.297  0.289 0.0443  0.617
+boot     1000  0.291  0.275 0.0535  0.623
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -727,11 +731,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-   0.24  0.157 0.0475  0.633       NA  0.001
+   0.24  0.156 0.0472  0.624       NA  0.001
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.285   0.26 0.0475  0.633
+boot     1000  0.291  0.279 0.0472  0.624
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -763,11 +767,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.461  0.182  0.113  0.786       NA  0.001
+  0.461  0.187 0.0963  0.793       NA  0.001
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.469  0.472  0.113  0.786
+boot     1000  0.471  0.477 0.0963  0.793
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -799,11 +803,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.481  0.191  0.087  0.797       NA      0
+  0.481  0.186 0.0816  0.805       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000   0.47  0.484  0.087  0.797
+boot     1000  0.468  0.466 0.0816  0.805
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -835,11 +839,11 @@ ID (26 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.357  0.148  0.126   0.66       NA      0
+  0.357  0.142  0.136  0.673       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.386   0.38  0.126   0.66
+boot     1000  0.385   0.38  0.136  0.673
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -871,11 +875,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-   0.39  0.175  0.109  0.741       NA      0
+   0.39  0.174  0.116  0.747       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.421  0.425  0.109  0.741
+boot     1000  0.435  0.438  0.116  0.747
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -907,11 +911,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.401   0.18  0.114  0.764       NA      0
+  0.401  0.175  0.118  0.751       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.425  0.415  0.114  0.764
+boot     1000  0.431  0.432  0.118  0.751
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -943,11 +947,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.339  0.181 0.0612  0.722       NA  0.003
+  0.339  0.183 0.0214  0.711       NA  0.003
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.358  0.341 0.0612  0.722
+boot     1000  0.357  0.353 0.0214  0.711
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -979,11 +983,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.352  0.191 0.0149  0.736       NA  0.004
+  0.352  0.189 0.0244  0.739       NA  0.004
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.366  0.361 0.0149  0.736
+boot     1000  0.369  0.368 0.0244  0.739
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1022,11 +1026,11 @@ ID (26 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.699 0.0873  0.486  0.821       NA      0
+  0.699 0.0852  0.488  0.827       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.681   0.69  0.486  0.821
+boot     1000  0.687  0.693  0.488  0.827
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1058,11 +1062,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.562  0.138  0.258  0.779       NA      0
+  0.562  0.139   0.25  0.783       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.552  0.568  0.258  0.779
+boot     1000  0.552  0.565   0.25  0.783
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1094,11 +1098,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-   0.24  0.157 0.0489  0.639       NA  0.001
+   0.24  0.156 0.0474  0.607       NA  0.001
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.287  0.263 0.0489  0.639
+boot     1000  0.275  0.252 0.0474  0.607
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1130,11 +1134,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.461  0.182 0.0991  0.782       NA  0.001
+  0.461  0.183  0.115  0.787       NA  0.001
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.461  0.465 0.0991  0.782
+boot     1000  0.461  0.462  0.115  0.787
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1166,11 +1170,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.735  0.153  0.306  0.897       NA      0
+  0.735  0.149  0.326  0.892       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000   0.69  0.724  0.306  0.897
+boot     1000  0.697  0.721  0.326  0.892
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1202,11 +1206,11 @@ ID (26 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.764 0.0747  0.583  0.869       NA      0
+  0.764 0.0735   0.58  0.869       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.747  0.756  0.583  0.869
+boot     1000  0.751  0.763   0.58  0.869
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1238,11 +1242,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-   0.79 0.0959  0.535  0.903       NA      0
+   0.79 0.0877  0.563    0.9       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.766  0.784  0.535  0.903
+boot     1000  0.776   0.79  0.563    0.9
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1274,11 +1278,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.794 0.0924  0.555  0.906       NA      0
+  0.794  0.091  0.567  0.908       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.774  0.788  0.555  0.906
+boot     1000  0.775  0.792  0.567  0.908
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1313,11 +1317,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.832   0.11  0.509  0.943       NA      0
+  0.832  0.106  0.548   0.94       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.797   0.82  0.509  0.943
+boot     1000  0.809  0.833  0.548   0.94
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1349,11 +1353,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.824  0.118  0.481  0.937       NA      0
+  0.824  0.124  0.487   0.94       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.791   0.82  0.481  0.937
+boot     1000  0.792  0.822  0.487   0.94
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1390,14 +1394,14 @@ ID (26 groups)
 
 Repeatability estimation overview: 
            R     SE   2.5%  97.5% P_permut
-Org  0.00848 0.0294      0  0.101       NA
-Link 0.03126 0.0806      0  0.269       NA
+Org  0.00848 0.0300      0  0.111       NA
+Link 0.03126 0.0792      0  0.267       NA
 
 
 Bootstrapping: 
           N   Mean  Median   2.5%  97.5%
-Org    1000 0.0195 0.00346      0  0.101
-Link   1000 0.0590 0.01313      0  0.269
+Org    1000 0.0200 0.00503      0  0.111
+Link   1000 0.0598 0.01960      0  0.267
 
 Permutation test: 
           N   Mean Median   2.5%  97.5% P_permut
@@ -1432,14 +1436,14 @@ ID (16 groups)
 
 Repeatability estimation overview: 
             R     SE   2.5%  97.5% P_permut
-Org  1.42e-10 0.0303      0  0.105       NA
-Link 6.35e-10 0.0875      0  0.293       NA
+Org  1.42e-10 0.0304      0  0.101       NA
+Link 6.35e-10 0.0837      0  0.273       NA
 
 
 Bootstrapping: 
           N   Mean   Median   2.5%  97.5%
-Org    1000 0.0173 1.01e-09      0  0.105
-Link   1000 0.0566 3.91e-09      0  0.293
+Org    1000 0.0157 3.75e-10      0  0.101
+Link   1000 0.0505 1.45e-09      0  0.273
 
 Permutation test: 
           N   Mean Median   2.5%  97.5% P_permut
@@ -1474,14 +1478,14 @@ ID (16 groups)
 
 Repeatability estimation overview: 
           R     SE   2.5%  97.5% P_permut
-Org       0 0.0315      0 0.0993       NA
-Link      0 0.0803      0 0.2662       NA
+Org       0 0.0290      0 0.0973       NA
+Link      0 0.0776      0 0.2681       NA
 
 
 Bootstrapping: 
           N   Mean   Median   2.5%  97.5%
-Org    1000 0.0142 2.02e-10      0 0.0993
-Link   1000 0.0428 6.75e-10      0 0.2662
+Org    1000 0.0140 1.88e-10      0 0.0973
+Link   1000 0.0434 6.68e-10      0 0.2681
 
 Permutation test: 
           N   Mean Median   2.5%  97.5% P_permut
@@ -1516,14 +1520,14 @@ ID (10 groups)
 
 Repeatability estimation overview: 
           R     SE   2.5%  97.5% P_permut
-Org   0.133  0.114      0  0.408       NA
-Link  0.304  0.190      0  0.645       NA
+Org   0.133  0.113      0  0.399       NA
+Link  0.304  0.184      0  0.630       NA
 
 
 Bootstrapping: 
           N   Mean Median   2.5%  97.5%
-Org    1000  0.132  0.109      0  0.408
-Link   1000  0.265  0.264      0  0.645
+Org    1000  0.135  0.108      0  0.399
+Link   1000  0.269  0.261      0  0.630
 
 Permutation test: 
           N   Mean Median   2.5%  97.5% P_permut
@@ -1558,14 +1562,14 @@ ID (10 groups)
 
 Repeatability estimation overview: 
           R     SE   2.5%  97.5% P_permut
-Org   0.144  0.122      0  0.442       NA
-Link  0.325  0.202      0  0.674       NA
+Org   0.144  0.117      0  0.407       NA
+Link  0.325  0.194      0  0.628       NA
 
 
 Bootstrapping: 
           N   Mean Median   2.5%  97.5%
-Org    1000  0.134  0.107      0  0.442
-Link   1000  0.259  0.234      0  0.674
+Org    1000  0.136  0.117      0  0.407
+Link   1000  0.265  0.264      0  0.628
 
 Permutation test: 
           N   Mean Median   2.5%  97.5% P_permut
@@ -1607,11 +1611,11 @@ ID (26 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.706  0.091  0.494  0.833       NA      0
+  0.706 0.0858  0.504  0.837       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.697  0.709  0.494  0.833
+boot     1000  0.701  0.715  0.504  0.837
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1643,11 +1647,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.661   0.12  0.376  0.841       NA      0
+  0.661  0.122   0.38  0.834       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.647  0.663  0.376  0.841
+boot     1000  0.645  0.663   0.38  0.834
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1679,11 +1683,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.669  0.126  0.349  0.844       NA      0
+  0.669  0.127  0.359  0.846       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.653  0.676  0.349  0.844
+boot     1000  0.645   0.66  0.359  0.846
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1718,11 +1722,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.772  0.133    0.4  0.923       NA      0
+  0.772  0.131  0.435  0.917       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.747  0.772    0.4  0.923
+boot     1000  0.743  0.764  0.435  0.917
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1754,11 +1758,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-  0.798  0.129  0.446  0.935       NA      0
+  0.798  0.135  0.406  0.934       NA      0
 
 Bootstrapping and Permutation test: 
             N   Mean Median   2.5%  97.5%
-boot     1000  0.764  0.792  0.446  0.935
+boot     1000   0.76   0.79  0.406  0.934
 permut      1     NA     NA     NA     NA
 
 Likelihood ratio test: 
@@ -1795,11 +1799,11 @@ ID (26 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-      0 0.0306      0  0.117       NA      1
+      0 0.0344      0  0.127       NA      1
 
 Bootstrapping and Permutation test: 
             N   Mean   Median   2.5%  97.5%
-boot     1000 0.0166 1.42e-09      0  0.117
+boot     1000  0.018 0.000683      0  0.127
 permut      1     NA       NA     NA     NA
 
 Likelihood ratio test: 
@@ -1831,11 +1835,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-      0 0.0458      0  0.156       NA      1
+      0 0.0444      0   0.15       NA      1
 
 Bootstrapping and Permutation test: 
             N   Mean   Median   2.5%  97.5%
-boot     1000 0.0239 4.87e-11      0  0.156
+boot     1000 0.0225 4.29e-10      0   0.15
 permut      1     NA       NA     NA     NA
 
 Likelihood ratio test: 
@@ -1867,11 +1871,11 @@ ID (16 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-      0 0.0438      0  0.139       NA    0.5
+      0 0.0411      0  0.147       NA    0.5
 
 Bootstrapping and Permutation test: 
             N   Mean   Median   2.5%  97.5%
-boot     1000 0.0234 1.73e-09      0  0.139
+boot     1000 0.0227 1.71e-09      0  0.147
 permut      1     NA       NA     NA     NA
 
 Likelihood ratio test: 
@@ -1903,11 +1907,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
       R     SE   2.5%  97.5% P_permut  LRT_P
-      0 0.0492      0  0.179       NA      1
+      0 0.0481      0   0.17       NA      1
 
 Bootstrapping and Permutation test: 
             N   Mean   Median   2.5%  97.5%
-boot     1000  0.026 9.44e-09      0  0.179
+boot     1000 0.0227 5.76e-11      0   0.17
 permut      1     NA       NA     NA     NA
 
 Likelihood ratio test: 
@@ -1939,11 +1943,11 @@ ID (10 groups)
 
 Repeatability estimation overview: 
         R       SE     2.5%    97.5% P_permut  LRT_P
- 2.57e-16 3.71e-16 9.68e-17 1.31e-15       NA    0.5
+ 2.57e-16 3.61e-16 9.68e-17 1.31e-15       NA    0.5
 
 Bootstrapping and Permutation test: 
             N     Mean   Median     2.5%    97.5%
-boot     1000 3.96e-16 2.57e-16 9.68e-17 1.31e-15
+boot     1000 3.92e-16 2.57e-16 9.68e-17 1.31e-15
 permut      1       NA       NA       NA       NA
 
 Likelihood ratio test: 
@@ -2024,41 +2028,41 @@ D  = 1.94e-11, df = 1, P = 0.5
 34                   Betweenness Males 3.042519e-01
 35              Betweenness Males Rank 3.249313e-01
                                             CI
-1         0.107889223720355 - 0.64049549569085
-2        0.0442863631609244 - 0.61711689172591
-3       0.0475387392931538 - 0.633383016415927
-4        0.112871921522184 - 0.786446061472035
-5       0.0870295836616686 - 0.796527369824138
-6        0.126429010329032 - 0.659990677780622
-7        0.109287468858106 - 0.740737907460078
-8         0.114241931848566 - 0.76406461903977
-9       0.0611658120700853 - 0.721655055096437
-10      0.0148970264709466 - 0.735711795069958
-11       0.485519702368927 - 0.821008298495212
-12       0.257532856342169 - 0.778508370390872
-13      0.0489001857485036 - 0.638601893405837
-14      0.0991186417419386 - 0.781887315202682
-15       0.305993365808626 - 0.896657832027056
-16         0.5834099501872 - 0.868561010846455
-17       0.534759687209951 - 0.903311169154663
-18       0.555146650371516 - 0.905519919611449
-19       0.508982080647283 - 0.942754459048804
-20       0.480880948926335 - 0.937307026826794
-21       0.493900198366259 - 0.833425070754196
-22       0.376008163364819 - 0.840893701943702
-23        0.348705306453403 - 0.84376861637561
-24       0.399963585918506 - 0.923320389045763
-25       0.445507594880822 - 0.935145371539738
-26                       0 - 0.116995686031361
-27                       0 - 0.156042266254919
-28                        0 - 0.13901051010111
-29                        0 - 0.17923563729535
-30 9.68312458600536e-17 - 1.30626584100286e-15
-31                       0 - 0.268794355603678
-32                       0 - 0.292823292654147
-33                       0 - 0.266238987152993
-34                        0 - 0.64451254913933
-35                       0 - 0.674273369954451</code></pre>
+1        0.101965552111435 - 0.619461130522817
+2        0.0535050733241517 - 0.62343194359326
+3       0.0471685325912432 - 0.623747432845445
+4       0.0963093745731402 - 0.792878606811295
+5       0.0816469837807145 - 0.804542905839944
+6         0.135769703145451 - 0.67325026642966
+7        0.116223988220771 - 0.746899802532114
+8        0.118204397775907 - 0.751421309928996
+9       0.0214295888473871 - 0.711193432032283
+10      0.0244277717238053 - 0.739179822312841
+11       0.488317564150656 - 0.826843391364504
+12        0.249811784479649 - 0.78342956071869
+13      0.0474482591327642 - 0.606536439138291
+14       0.114839391279541 - 0.787113012856226
+15       0.326091944953594 - 0.891958798479892
+16       0.579703952174071 - 0.868742745240596
+17       0.562823359473828 - 0.900447733899176
+18        0.56652659733411 - 0.907604160795915
+19       0.548145099793782 - 0.939987077497016
+20        0.487466055823209 - 0.94001979586101
+21       0.503706465498139 - 0.836823235977932
+22       0.380252761958833 - 0.833618584946148
+23        0.359128415284496 - 0.84554377581323
+24        0.434837894113737 - 0.91676349378863
+25        0.40636616907802 - 0.934199354363917
+26                       0 - 0.126863933840481
+27                       0 - 0.149972839197564
+28                       0 - 0.146839938684795
+29                       0 - 0.170348346180097
+30 9.68312458600536e-17 - 1.30626584100285e-15
+31                       0 - 0.267311672697424
+32                       0 - 0.273204228151637
+33                       0 - 0.268110399464492
+34                       0 - 0.630311592060758
+35                       0 - 0.628228345339595</code></pre>
 </div>
 </div>
 <p>Table 2 of the original study provides the repeatability estimate (R), 95% confidence interval (CI), and the p-value of each repeatability estimate based on a node permutation test. The table below it summarizes the R and CI values returned by the models I ran</p>
@@ -2475,9 +2479,8 @@ D  = 1.94e-11, df = 1, P = 0.5
 <section id="in-strength-out-strength-1" class="level3">
 <h3 class="anchored" data-anchor-id="in-strength-out-strength-1">In-Strength &amp; Out-Strength</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb294"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb294-1"><a href="#cb294-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">warning =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">message =</span> <span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb294-2"><a href="#cb294-2" aria-hidden="true" tabindex="-1"></a><span class="co">#In-strength</span></span>
-<span id="cb294-3"><a href="#cb294-3" aria-hidden="true" tabindex="-1"></a>inStrengthPerm <span class="ot">&lt;-</span> <span class="fu">nodePerm</span>(<span class="at">df =</span> allMetrics, <span class="at">n =</span> <span class="dv">10</span>, <span class="at">formula =</span> In.Strength <span class="sc">~</span> (<span class="dv">1</span><span class="sc">|</span>ID) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>Season))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb294"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb294-1"><a href="#cb294-1" aria-hidden="true" tabindex="-1"></a><span class="co">#In-strength</span></span>
+<span id="cb294-2"><a href="#cb294-2" aria-hidden="true" tabindex="-1"></a>inStrengthPerm <span class="ot">&lt;-</span> <span class="fu">nodePerm</span>(<span class="at">df =</span> allMetrics, <span class="at">n =</span> <span class="dv">10</span>, <span class="at">formula =</span> In.Strength <span class="sc">~</span> (<span class="dv">1</span><span class="sc">|</span>ID) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>Season))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Bootstrap Progress:</code></pre>
 </div>
@@ -2850,9 +2853,8 @@ D  = 1.94e-11, df = 1, P = 0.5
 <section id="betweenness-1" class="level3">
 <h3 class="anchored" data-anchor-id="betweenness-1">Betweenness</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb415"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb415-1"><a href="#cb415-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">warning =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">message =</span> <span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb415-2"><a href="#cb415-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Betweenness</span></span>
-<span id="cb415-3"><a href="#cb415-3" aria-hidden="true" tabindex="-1"></a>btPerm <span class="ot">&lt;-</span> <span class="fu">nodePermGlmm</span>(<span class="at">df =</span> allMetrics, <span class="at">n =</span> <span class="dv">10</span>, <span class="at">formula =</span> b <span class="sc">~</span> (<span class="dv">1</span><span class="sc">|</span>ID) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>Season))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb415"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb415-1"><a href="#cb415-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Betweenness</span></span>
+<span id="cb415-2"><a href="#cb415-2" aria-hidden="true" tabindex="-1"></a>btPerm <span class="ot">&lt;-</span> <span class="fu">nodePermGlmm</span>(<span class="at">df =</span> allMetrics, <span class="at">n =</span> <span class="dv">10</span>, <span class="at">formula =</span> b <span class="sc">~</span> (<span class="dv">1</span><span class="sc">|</span>ID) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>Season))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Bootstrap Progress:</code></pre>
 </div>
@@ -3040,9 +3042,8 @@ D  = 1.94e-11, df = 1, P = 0.5
 <section id="eigenvector-centrality-1" class="level3">
 <h3 class="anchored" data-anchor-id="eigenvector-centrality-1">Eigenvector Centrality</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb476"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb476-1"><a href="#cb476-1" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">warning =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">message =</span> <span class="sc">-</span><span class="dv">1</span>)</span>
-<span id="cb476-2"><a href="#cb476-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Eigenvector</span></span>
-<span id="cb476-3"><a href="#cb476-3" aria-hidden="true" tabindex="-1"></a>ecPerm <span class="ot">&lt;-</span> <span class="fu">nodePerm</span>(<span class="at">df =</span> allMetrics, <span class="at">n =</span> <span class="dv">10</span>, <span class="at">formula =</span> EC.vector <span class="sc">~</span> (<span class="dv">1</span><span class="sc">|</span>ID) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>Season))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb476"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb476-1"><a href="#cb476-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Eigenvector</span></span>
+<span id="cb476-2"><a href="#cb476-2" aria-hidden="true" tabindex="-1"></a>ecPerm <span class="ot">&lt;-</span> <span class="fu">nodePerm</span>(<span class="at">df =</span> allMetrics, <span class="at">n =</span> <span class="dv">10</span>, <span class="at">formula =</span> EC.vector <span class="sc">~</span> (<span class="dv">1</span><span class="sc">|</span>ID) <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>Season))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Bootstrap Progress:</code></pre>
 </div>
@@ -3461,41 +3462,41 @@ D  = 1.94e-11, df = 1, P = 0.5
 34                   Betweenness Males 3.042519e-01
 35              Betweenness Males Rank 3.249313e-01
                                             CI   p
-1         0.107889223720355 - 0.64049549569085 0.0
-2        0.0442863631609244 - 0.61711689172591 0.0
-3       0.0475387392931538 - 0.633383016415927 0.0
-4        0.112871921522184 - 0.786446061472035 0.0
-5       0.0870295836616686 - 0.796527369824138 0.0
-6        0.126429010329032 - 0.659990677780622 0.0
-7        0.109287468858106 - 0.740737907460078 0.0
-8         0.114241931848566 - 0.76406461903977 0.0
-9       0.0611658120700853 - 0.721655055096437 0.0
-10      0.0148970264709466 - 0.735711795069958 0.0
-11       0.485519702368927 - 0.821008298495212 0.0
-12       0.257532856342169 - 0.778508370390872 0.0
-13      0.0489001857485036 - 0.638601893405837 0.0
-14      0.0991186417419386 - 0.781887315202682 0.0
-15       0.305993365808626 - 0.896657832027056 0.0
-16         0.5834099501872 - 0.868561010846455 0.0
-17       0.534759687209951 - 0.903311169154663 0.0
-18       0.555146650371516 - 0.905519919611449 0.0
-19       0.508982080647283 - 0.942754459048804 0.0
-20       0.480880948926335 - 0.937307026826794 0.0
-21       0.493900198366259 - 0.833425070754196 0.0
-22       0.376008163364819 - 0.840893701943702 0.0
-23        0.348705306453403 - 0.84376861637561 0.0
-24       0.399963585918506 - 0.923320389045763 0.0
-25       0.445507594880822 - 0.935145371539738 0.0
-26                       0 - 0.116995686031361 0.1
-27                       0 - 0.156042266254919 0.2
-28                        0 - 0.13901051010111 0.1
-29                        0 - 0.17923563729535 0.1
-30 9.68312458600536e-17 - 1.30626584100286e-15 0.0
-31                       0 - 0.268794355603678 0.0
-32                       0 - 0.292823292654147 0.0
-33                       0 - 0.266238987152993 0.2
-34                        0 - 0.64451254913933 0.0
-35                       0 - 0.674273369954451 0.0</code></pre>
+1        0.101965552111435 - 0.619461130522817 0.0
+2        0.0535050733241517 - 0.62343194359326 0.0
+3       0.0471685325912432 - 0.623747432845445 0.0
+4       0.0963093745731402 - 0.792878606811295 0.0
+5       0.0816469837807145 - 0.804542905839944 0.0
+6         0.135769703145451 - 0.67325026642966 0.0
+7        0.116223988220771 - 0.746899802532114 0.0
+8        0.118204397775907 - 0.751421309928996 0.0
+9       0.0214295888473871 - 0.711193432032283 0.0
+10      0.0244277717238053 - 0.739179822312841 0.0
+11       0.488317564150656 - 0.826843391364504 0.0
+12        0.249811784479649 - 0.78342956071869 0.0
+13      0.0474482591327642 - 0.606536439138291 0.1
+14       0.114839391279541 - 0.787113012856226 0.0
+15       0.326091944953594 - 0.891958798479892 0.0
+16       0.579703952174071 - 0.868742745240596 0.0
+17       0.562823359473828 - 0.900447733899176 0.0
+18        0.56652659733411 - 0.907604160795915 0.0
+19       0.548145099793782 - 0.939987077497016 0.0
+20        0.487466055823209 - 0.94001979586101 0.0
+21       0.503706465498139 - 0.836823235977932 0.0
+22       0.380252761958833 - 0.833618584946148 0.0
+23        0.359128415284496 - 0.84554377581323 0.0
+24        0.434837894113737 - 0.91676349378863 0.0
+25        0.40636616907802 - 0.934199354363917 0.0
+26                       0 - 0.126863933840481 0.1
+27                       0 - 0.149972839197564 0.2
+28                       0 - 0.146839938684795 0.1
+29                       0 - 0.170348346180097 0.2
+30 9.68312458600536e-17 - 1.30626584100285e-15 0.0
+31                       0 - 0.267311672697424 0.2
+32                       0 - 0.273204228151637 0.2
+33                       0 - 0.268110399464492 0.2
+34                       0 - 0.630311592060758 0.0
+35                       0 - 0.628228345339595 0.0</code></pre>
 </div>
 </div>
 <p>Here is table 2 again so we can compare the p-values from the original study to the p-values I generated</p>
@@ -3685,18 +3686,18 @@ Between      -0.117580463  1.00000000</code></pre>
 <span id="cb605-67"><a href="#cb605-67" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb605-68"><a href="#cb605-68" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"In-Degree p-value:"</span>, inDp, <span class="st">"; Out-Degree p-value:"</span>, outDp, <span class="st">"; In-Strength p-value:"</span>, inSp, <span class="st">"; Out-Strength p-value:"</span>, outSp, <span class="st">"; Eigenvector p-value:"</span>, EGp, <span class="st">"; Clustering Coefficient p-value:"</span>, CCp, <span class="st">"; Betweenness p-value:"</span>, BTp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "In-Degree p-value: 0.567 ; Out-Degree p-value: 0.535 ; In-Strength p-value: 0 ; Out-Strength p-value: 0.583 ; Eigenvector p-value: 0 ; Clustering Coefficient p-value: 0.536 ; Betweenness p-value: 0.288"</code></pre>
+<pre><code>[1] "In-Degree p-value: 0.596 ; Out-Degree p-value: 0.523 ; In-Strength p-value: 0 ; Out-Strength p-value: 0.56 ; Eigenvector p-value: 0 ; Clustering Coefficient p-value: 0.593 ; Betweenness p-value: 0.288"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb607"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb607-1"><a href="#cb607-1" aria-hidden="true" tabindex="-1"></a>sexResults <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Metric.Sample =</span> <span class="fu">c</span>(<span class="st">"In-Degree"</span>, <span class="st">"Out-Degree"</span>, <span class="st">"In-Strength"</span>, <span class="st">"Out.Strength"</span>, <span class="st">"Eigenvector"</span>, <span class="st">"Clustering Coefficient"</span>, <span class="st">"Betweennes"</span>), <span class="at">Estimate =</span> <span class="fu">c</span>(inD_c[<span class="st">"SexM"</span>, <span class="st">"Estimate"</span>], outD_c[<span class="st">"SexM"</span>, <span class="st">"Estimate"</span>], inS_c[<span class="st">"SexM"</span>, <span class="st">"Estimate"</span>], outS_c[<span class="st">"SexM"</span>, <span class="st">"Estimate"</span>], eg_c[<span class="st">"SexM"</span>, <span class="st">"Estimate"</span>], cc_c[<span class="st">"SexM"</span>, <span class="st">"Estimate"</span>], bt_c[<span class="st">"SexM"</span>, <span class="st">"Estimate"</span>]), <span class="at">Standard.Error =</span> <span class="fu">c</span>(inD_c[<span class="st">"SexM"</span>, <span class="st">"Std. Error"</span>], outD_c[<span class="st">"SexM"</span>, <span class="st">"Std. Error"</span>], inS_c[<span class="st">"SexM"</span>, <span class="st">"Std. Error"</span>], outS_c[<span class="st">"SexM"</span>, <span class="st">"Std. Error"</span>], eg_c[<span class="st">"SexM"</span>, <span class="st">"Std. Error"</span>], cc_c[<span class="st">"SexM"</span>, <span class="st">"Std. Error"</span>], bt_c[<span class="st">"SexM"</span>, <span class="st">"Std. Error"</span>]), <span class="at">p =</span> <span class="fu">c</span>(inDp, outDp, inSp, outSp, EGp, CCp, BTp))</span>
 <span id="cb607-2"><a href="#cb607-2" aria-hidden="true" tabindex="-1"></a>sexResults</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           Metric.Sample    Estimate Standard.Error     p
-1              In-Degree 0.387500000    1.297664624 0.567
-2             Out-Degree 0.495833333    1.451123034 0.535
+1              In-Degree 0.387500000    1.297664624 0.596
+2             Out-Degree 0.495833333    1.451123034 0.523
 3            In-Strength 0.006878703    0.004445482 0.000
-4           Out.Strength 0.001301287    0.006236372 0.583
+4           Out.Strength 0.001301287    0.006236372 0.560
 5            Eigenvector 0.119587922    0.094953940 0.000
-6 Clustering Coefficient 0.008662067    0.014740720 0.536
+6 Clustering Coefficient 0.008662067    0.014740720 0.593
 7             Betweennes 0.294397906    0.362159941 0.288</code></pre>
 </div>
 </div>
@@ -3782,7 +3783,7 @@ Between      -0.117580463  1.00000000</code></pre>
 <span id="cb609-74"><a href="#cb609-74" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb609-75"><a href="#cb609-75" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Female p-values: In-Degree p-value:"</span>, inDFrankp, <span class="st">"; Out-Degree p-value:"</span>, outDFrankp, <span class="st">"; In-Strength p-value:"</span>, inSFrankp, <span class="st">"; Out-Strength p-value:"</span>, outSFrankp, <span class="st">"; Eigenvector p-value:"</span>, egFrankp, <span class="st">"; Betweenness p-value:"</span>, btFrankp, <span class="st">"; Clustering Coefficient p-value:"</span>, ccFrankp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Female p-values: In-Degree p-value: 0.194 ; Out-Degree p-value: 0.027 ; In-Strength p-value: 0.804 ; Out-Strength p-value: 0.555 ; Eigenvector p-value: 0.94 ; Betweenness p-value: 0.962 ; Clustering Coefficient p-value: 0.66"</code></pre>
+<pre><code>[1] "Female p-values: In-Degree p-value: 0.181 ; Out-Degree p-value: 0.037 ; In-Strength p-value: 0.79 ; Out-Strength p-value: 0.539 ; Eigenvector p-value: 0.949 ; Betweenness p-value: 0.97 ; Clustering Coefficient p-value: 0.663"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb611"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb611-1"><a href="#cb611-1" aria-hidden="true" tabindex="-1"></a><span class="do">#########################################################################################################################################################################################################################################################</span></span>
 <span id="cb611-2"><a href="#cb611-2" aria-hidden="true" tabindex="-1"></a><span class="co">#Rank as fixed effect males</span></span>
@@ -3861,26 +3862,26 @@ Between      -0.117580463  1.00000000</code></pre>
 <span id="cb611-75"><a href="#cb611-75" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb611-76"><a href="#cb611-76" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste</span>(<span class="st">"Male p-values: In-Degree p-value:"</span>, inDMrankp, <span class="st">"; Out-Degree p-value:"</span>, outDMrankp, <span class="st">"; In-Strength p-value:"</span>, inSMrankp, <span class="st">"; Out-Strength p-value:"</span>, outSMrankp, <span class="st">"; Eigenvector p-value:"</span>, egMrankp, <span class="st">"; Clustering Coefficient p-value:"</span>, ccMrankp, <span class="st">"; Betweenness p-value:"</span>, btMrankp))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "Male p-values: In-Degree p-value: 0.926 ; Out-Degree p-value: 0.739 ; In-Strength p-value: 0 ; Out-Strength p-value: 0.083 ; Eigenvector p-value: 0.717 ; Clustering Coefficient p-value: 0.976 ; Betweenness p-value: 0.806"</code></pre>
+<pre><code>[1] "Male p-values: In-Degree p-value: 0.927 ; Out-Degree p-value: 0.736 ; In-Strength p-value: 0 ; Out-Strength p-value: 0.073 ; Eigenvector p-value: 0.721 ; Clustering Coefficient p-value: 0.962 ; Betweenness p-value: 0.817"</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb613"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb613-1"><a href="#cb613-1" aria-hidden="true" tabindex="-1"></a>rankResults <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Metric.Sample =</span> <span class="fu">c</span>(<span class="st">"In-Degree Females"</span>, <span class="st">"In-Degree Males"</span>, <span class="st">"Out-Degree Females"</span>, <span class="st">"Out-Degree Males"</span>, <span class="st">"In-Strength Females"</span>, <span class="st">"In-Strength Males"</span>, <span class="st">"Out-Strength Females"</span>, <span class="st">"Out-Strength Males"</span>, <span class="st">"Eigenvector Females"</span>, <span class="st">"Eigenvector Males"</span>, <span class="st">"Clustering Coefficient Females"</span>, <span class="st">"Clustering Coefficient Males"</span>, <span class="st">"Betweenness"</span>, <span class="st">"Betweenness"</span>), <span class="at">Estimate =</span> <span class="fu">c</span>(inDF_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], inDM_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], outDF_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], outDM_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], inSF_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], inSM_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], outSF_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], outSM_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], egF_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], egM_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], ccF_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], ccM_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>],btF_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>], btM_rankc[<span class="st">"rank"</span>, <span class="st">"Estimate"</span>]), <span class="at">Standard.Error =</span> <span class="fu">c</span>(inDF_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], inDM_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], outDF_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], outDM_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], inSF_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], inSM_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], outSF_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], outSM_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], egF_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], egM_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], ccF_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], ccM_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>],btF_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>], btM_rankc[<span class="st">"rank"</span>, <span class="st">"Std. Error"</span>]), <span class="at">p =</span> <span class="fu">c</span>(inDFrankp, inDMrankp, outDFrankp, outDMrankp, inSFrankp, inSMrankp, outSFrankp, outSMrankp, egFrankp, egMrankp, ccFrankp, ccMrankp, btFrankp, btMrankp))</span>
 <span id="cb613-2"><a href="#cb613-2" aria-hidden="true" tabindex="-1"></a>rankResults</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                    Metric.Sample      Estimate Standard.Error     p
-1               In-Degree Females -1.826270e-03   2.040682e-03 0.194
-2                 In-Degree Males  1.727030e-04   3.054800e-03 0.926
-3              Out-Degree Females -2.805210e-03   2.381411e-03 0.027
-4                Out-Degree Males  6.789544e-04   2.997524e-03 0.739
-5             In-Strength Females -7.661176e-07   5.012141e-06 0.804
+1               In-Degree Females -1.826270e-03   2.040682e-03 0.181
+2                 In-Degree Males  1.727030e-04   3.054800e-03 0.927
+3              Out-Degree Females -2.805210e-03   2.381411e-03 0.037
+4                Out-Degree Males  6.789544e-04   2.997524e-03 0.736
+5             In-Strength Females -7.661176e-07   5.012141e-06 0.790
 6               In-Strength Males -5.469432e-06   1.113834e-05 0.000
-7            Out-Strength Females -2.830187e-06   9.592387e-06 0.555
-8              Out-Strength Males  8.409097e-06   8.949071e-06 0.083
-9             Eigenvector Females  5.042799e-06   1.304031e-04 0.940
-10              Eigenvector Males  4.152136e-05   2.019512e-04 0.717
-11 Clustering Coefficient Females -1.211733e-05   2.828752e-05 0.660
-12   Clustering Coefficient Males -1.412991e-06   3.542467e-05 0.976
-13                    Betweenness  3.173111e-05   7.199563e-04 0.962
-14                    Betweenness -2.011570e-04   1.127930e-03 0.806</code></pre>
+7            Out-Strength Females -2.830187e-06   9.592387e-06 0.539
+8              Out-Strength Males  8.409097e-06   8.949071e-06 0.073
+9             Eigenvector Females  5.042799e-06   1.304031e-04 0.949
+10              Eigenvector Males  4.152136e-05   2.019512e-04 0.721
+11 Clustering Coefficient Females -1.211733e-05   2.828752e-05 0.663
+12   Clustering Coefficient Males -1.412991e-06   3.542467e-05 0.962
+13                    Betweenness  3.173111e-05   7.199563e-04 0.970
+14                    Betweenness -2.011570e-04   1.127930e-03 0.817</code></pre>
 </div>
 </div>
 <p>These results are mean to mirror those of table 4. My results here, similar to the models I ran for sex, are different from the original study and show again how the methods may not have been clear enough to fully replicate.</p>
