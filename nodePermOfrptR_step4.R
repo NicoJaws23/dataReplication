@@ -2,6 +2,7 @@
 library(rptR)
 library(tidyverse)
 library(mosaic)
+
 nodePerm <- function(df, n, formula){
   permN <- do(n) * {
     permd <- df
@@ -20,153 +21,168 @@ nodePermGlmm <- function(df, n, formula){
     permd$ID = sample(permd$ID)
     m <- rptPoisson(formula,
                     grname = "ID",
-                    data = b)
+                    data = permd)
     data.frame(R = m$R$ID)
   }
   return(permN)
 }
+
 #In-degree
-inDegPerm <- nodePerm(df = IO, n = 2, formula = In ~ (1|ID) + (1|Season))
-inDegPval <- (sum(inDegPerm$R >= IOm$R) + 1) / (length(inDegPerm$R) + 1)
+inDegPerm <- nodePerm(df = allMetrics, n = 10, formula = In.Degree ~ (1|ID) + (1|Season))
+inDegPval <- (sum(inDegPerm$R >= abs(IOm$R)) + sum(inDegPerm$R <= -abs(IOm$R)))/10
 
 #In Degree Females
-inDegPermF <- nodePerm(df = ioFemales, n = 10, forumula = In ~ (1|ID) + (1|Season))
-inDegPermF_pval <- (sum(inDegPermF$R >= IOmF$R) + 1) / (length(inDegPermF$R) + 1)
+inDegPermF <- nodePerm(df = Females, n = 10, formula = In.Degree ~ (1|ID) + (1|Season))
+inDegPermF_pval <- (sum(inDegPermF$R >= abs(IOmF$R)) + sum(inDegPermF$R <= -abs(IOmF$R)))/10
 
 #In Degree Females w/ rank
-inDegPermFrank <- nodePerm(df = ioFemales, n = 10, forumula = In ~ rank + (1|ID) + (1|Season))
-inDegPermFrank_pval <- (sum(inDegPermFrank$R >= IOmF_rank$R) + 1) / (length(inDegPermFrank$R) + 1)
+inDegPermFrank <- nodePerm(df = Females, n = 10, formula = In.Degree ~ rank + (1|ID) + (1|Season))
+inDegPermFrank_pval <- (sum(inDegPermFrank$R >= abs(IOmF_rank$R)) + sum(inDegPermFrank$R <= -abs(IOmF_rank$R)))/10
 
 #In Degree Males
-inDegPermM <- nodePerm(df = ioMales, n = 10, forumula = In ~ (1|ID) + (1|Season))
-inDegPermM_pval <- (sum(inDegPermM$R >= IOmM$R) + 1) / (length(inDegPermM$R) + 1)
+inDegPermM <- nodePerm(df = Males, n = 10, formula = In.Degree ~ (1|ID) + (1|Season))
+inDegPermM_pval <- (sum(inDegPermM$R >= abs(IOmM$R)) + sum(inDegPermM$R <= -abs(IOmM$R)))/10
 
 #In Degree Males w/ rank
-inDegPermMrank <- nodePerm(df = ioMales, n = 10, forumula = In ~ rank + (1|ID) + (1|Season))
-inDegPermMrank_pval <- (sum(inDegPermMrank$R >= IOmM_rank$R) + 1) / (length(inDegPermMrank$R) + 1)
+inDegPermMrank <- nodePerm(df = Males, n = 10, formula = In.Degree ~ rank + (1|ID) + (1|Season))
+inDegPermMrank_pval <- (sum(inDegPermMrank$R >= abs(IOmM_rank$R)) + sum(inDegPermMrank$R <= -abs(IOmM_rank$R)))/10
 
 #Out degree
-outDegPerm <- nodePerm(df = IO, n = 2, formula = Out ~ (1|ID) + (1|Season))
-inDegPval <- (sum(outDegPerm$R >= IOmOut$R) + 1) / (length(outDegPerm$R) + 1)
+outDegPerm <- nodePerm(df = allMetrics, n = 10, formula = Out.Degree ~ (1|ID) + (1|Season))
+outDegPval <- (sum(outDegPerm$R >= abs(IOmOut$R)) + sum(outDegPerm$R <= -abs(IOmOut$R)))/10
 
 #Out degree females
-outDegPermF <- nodePerm(df = ioFemales, n = 2, formula = Out ~ (1|ID) + (1|Season))
-outDegPermF_pval <- (sum(outDegPermF$R >= ioOutFemales$R) + 1) / (length(outDegPermF$R) + 1)
+outDegPermF <- nodePerm(df = Females, n = 10, formula = Out.Degree ~ (1|ID) + (1|Season))
+outDegPermF_pval <- (sum(outDegPermF$R >= abs(ioOutFemales$R)) + sum(outDegPermF$R <= -abs(ioOutFemales$R)))/10
 
 #Out degree females w/ rank
-outDegPermFrank <- nodePerm(df = ioFemales, n = 2, formula = Out ~ rank + (1|ID) + (1|Season))
-outDegPermFrank_pval <- (sum(outDegPermFrank$R >= ioOutFemales_rank$R) + 1) / (length(outDegPermFrank$R) + 1)
+outDegPermFrank <- nodePerm(df = Females, n = 10, formula = Out.Degree ~ rank + (1|ID) + (1|Season))
+outDegPermFrank_pval <- (sum(outDegPermFrank$R >= abs(ioOutFemales_rank$R)) + sum(outDegPermFrank$R <= -abs(ioOutFemales_rank$R)))/10
 
 #Out degree males
-outDegPermM <- nodePerm(df = ioMales, n = 2, formula = Out ~ (1|ID) + (1|Season))
-outDegPermM_pval <- (sum(outDegPermM$R >= ioOutMales$R) + 1) / (length(outDegPermM$R) + 1)
+outDegPermM <- nodePerm(df = Males, n = 10, formula = Out.Degree ~ (1|ID) + (1|Season))
+outDegPermM_pval <- (sum(outDegPermM$R >= abs(ioOutMales$R)) + sum(outDegPermM$R <= -abs(ioOutMales$R)))/10
 
 #Out degree males w/ rank
-outDegPermMrank <- nodePerm(df = ioMales, n = 2, formula = Out ~ rank + (1|ID) + (1|Season))
-outDegPermMrank_pval <- (sum(outDegPermMrank$R >= ioOutMales_rank$R) + 1) / (length(outDegPermMrank$R) + 1)
-
+outDegPermMrank <- nodePerm(df = Males, n = 10, formula = Out.Degree ~ rank + (1|ID) + (1|Season))
+outDegPermMrank_pval <- (sum(outDegPermMrank$R >= abs(ioOutMales_rank$R)) + sum(outDegPermMrank$R <= -abs(ioOutMales_rank$R)))/10
 ################################################################################
 ################################################################################
-#In-strength & Out-strenght
 #In-strength
-inStrengthPerm <- nodePerm(df = strength, n = 2, formula = In ~ (1|ID) + (1|Season))
-inStrengthPerm_pval <- (sum(inStrengthPerm$R >= inStrength$R) + 1) / (length(inStrengthPerm$R) + 1)
+inStrengthPerm <- nodePerm(df = allMetrics, n = 10, formula = In.Strength ~ (1|ID) + (1|Season))
+inStrengthPerm_pval <- (sum(inStrengthPerm$R >= abs(inStrength$R)) + sum(inStrengthPerm$R <= -abs(inStrength$R)))/10
 
 #In-strength females
-inStrengthPermF <- nodePerm(df = strengthF, n = 2, formula = In ~ (1|ID) + (1|Season))
-inStrengthPermF_pval <- (sum(inStrengthPermF$R >= inStrengthF$R) + 1) / (length(inStrengthPermF$R) + 1)
+inStrengthPermF <- nodePerm(df = Females, n = 10, formula = In.Strength ~ (1|ID) + (1|Season))
+inStrengthPermF_pval <- (sum(inStrengthPermF$R >= abs(inStrengthF$R)) + sum(inStrengthPermF$R <= -abs(inStrengthF$R)))/10
 
 #In-strength females w/ rank
-inStrengthPermFrank <- nodePerm(df = strengthF, n = 2, formula = In ~ rank + (1|ID) + (1|Season))
-inStrengthPermFrank_pval <- (sum(inStrengthPermFrank$R >= inStrengthF_rank$R) + 1) / (length(inStrengthPermFrank$R) + 1)
+inStrengthPermFrank <- nodePerm(df = Females, n = 10, formula = In.Strength ~ rank + (1|ID) + (1|Season))
+inStrengthPermFrank_pval <- (sum(inStrengthPermFrank$R >= abs(inStrengthF_rank$R)) + sum(inStrengthPermFrank$R <= -abs(inStrengthF_rank$R)))/10
 
 #In-strength Males
-inStrengthPermM <- nodePerm(df = strengthM, n = 2, formula = In ~ (1|ID) + (1|Season))
-inStrengthPermM_pval <- (sum(inStrengthPermM$R >= inStrengthM$R) + 1) / (length(inStrengthPermM$R) + 1)
+inStrengthPermM <- nodePerm(df = Males, n = 10, formula = In.Strength ~ (1|ID) + (1|Season))
+inStrengthPermM_pval <- (sum(inStrengthPermM$R >= abs(inStrengthM$R)) + sum(inStrengthPermM$R <= -abs(inStrengthM$R)))/10
 
 #In-strength Males w/ rank
-inStrengthPermMrank <- nodePerm(df = strengthM, n = 2, formula = In ~ rank + (1|ID) + (1|Season))
-inStrengthPermMrank_pval <- (sum(inStrengthPermMrank$R >= inStrengthM_rank$R) + 1) / (length(inStrengthPermMrank$R) + 1)
+inStrengthPermMrank <- nodePerm(df = Males, n = 10, formula = In.Strength ~ rank + (1|ID) + (1|Season))
+inStrengthPermMrank_pval <- (sum(inStrengthPermMrank$R >= abs(inStrengthM_rank$R)) + sum(inStrengthPermMrank$R <= -abs(inStrengthM_rank$R)))/10
 
 #Out-strength
-outStrengthPerm <- nodePerm(df = strength, n = 2, formula = Out ~ (1|ID) + (1|Season))
-outStrengthPerm_pval <- (sum(outStrengthPerm$R >= outStrength$R) + 1) / (length(outStrengthPerm$R) + 1)
+outStrengthPerm <- nodePerm(df = allMetrics, n = 10, formula = Out.Strength ~ (1|ID) + (1|Season))
+outStrengthPerm_pval <- (sum(outStrengthPerm$R >= abs(outStrength$R)) + sum(outStrengthPerm$R <= -abs(outStrength$R)))/10
 
 #out-strength females
-outStrengthPermF <- nodePerm(df = strengthF, n = 2, formula = Out ~ (1|ID) + (1|Season))
-outStrengthPermF_pval <- (sum(outStrengthPermF$R >= outStrengthF$R) + 1) / (length(outStrengthPermF$R) + 1)
+outStrengthPermF <- nodePerm(df = Females, n = 10, formula = Out.Strength ~ (1|ID) + (1|Season))
+outStrengthPermF_pval <- (sum(outStrengthPermF$R >= abs(outStrengthF$R)) + sum(outStrengthPermF$R <= -abs(outStrengthF$R)))/10
 
 #out-strength females w/ rank
-outStrengthPermFrank <- nodePerm(df = strengthF, n = 2, formula = Out ~ rank + (1|ID) + (1|Season))
-outStrengthPermFrank_pval <- (sum(outStrengthPermFrank$R >= outStrengthF_rank$R) + 1) / (length(outStrengthPermFrank$R) + 1)
+outStrengthPermFrank <- nodePerm(df = Females, n = 10, formula = Out.Strength ~ rank + (1|ID) + (1|Season))
+outStrengthPermFrank_pval <- (sum(outStrengthPermFrank$R >= abs(outStrengthF_rank$R)) + sum(outStrengthPermFrank$R <= -abs(outStrengthF_rank$R)))/10
 
 #out-strength Males
-outStrengthPermM <- nodePerm(df = strengthM, n = 2, formula = logOut ~ (1|ID) + (1|Season))
-outStrengthPermM_pval <- (sum(outStrengthPermM$R >= outStrengthM_log$R) + 1) / (length(outStrengthPermM$R) + 1)
+outStrengthPermM <- nodePerm(df = Males, n = 10, formula = logOutStrength ~ (1|ID) + (1|Season))
+outStrengthPermM_pval <- (sum(outStrengthPermM$R >= abs(outStrengthM_log$R)) + sum(outStrengthPermM$R <= -abs(outStrengthM_log$R)))/10
 
 #out-strength Males w/ rank
-outStrengthPermMrank <- nodePerm(df = strengthM, n = 2, formula = logOut ~ rank + (1|ID) + (1|Season))
-outStrengthPermMrank_pval <- (sum(outStrengthPermMrank$R >= outStrengthM_rank_log$R) + 1) / (length(outStrengthPermMrank$R) + 1)
+outStrengthPermMrank <- nodePerm(df = Males, n = 10, formula = logOutStrength ~ rank + (1|ID) + (1|Season))
+outStrengthPermMrank_pval <- (sum(outStrengthPermMrank$R >= abs(outStrengthM_rank_log$R)) + sum(outStrengthPermMrank$R <= -abs(outStrengthM_rank_log$R)))/10
+
 
 #Betweenness
-btPerm <- nodePermGlmm(df = b, n = 2, formula = bt ~ (1|ID) + (1|Season))
-btPerm_pval <- (sum(btPerm$R >= btM_glmm$R) + 1)/(length(btPerm$R) + 1)
+btPerm <- nodePermGlmm(df = allMetrics, n = 10, formula = b ~ (1|ID) + (1|Season))
+btPerm_pval <- (sum(btPerm$R >= abs(btM_glmm$R)) + sum(btPerm$R <= -abs(btM_glmm$R)))/10
 
 #Female betweenness
-btPermF <- nodePermGlmm(df = bFemales, n = 2, formula = bt ~ (1|ID) + (1|Season))
-btPermF_pval <- (sum(btPermF$R >= btM_Females_glmm$R) + 1)/(length(btPermF$R) + 1)
+btPermF <- nodePermGlmm(df = Females, n = 10, formula = b ~ (1|ID) + (1|Season))
+btPermF_pval <- (sum(btPermF$R >= abs(btM_Females_glmm$R)) + sum(btPermF$R <= -abs(btM_Females_glmm$R)))/10
 
 #Female betweenness w/ rank
-btPermFrank <- nodePermGlmm(df = bFemales, n = 2, formula = bt ~ rank + (1|ID) + (1|Season))
-btPermFrank_pval <- (sum(btPermFrank$R >= btM_Females_rank_glmm$R) + 1)/(length(btPermF$R) + 1)
+btPermFrank <- nodePermGlmm(df = Females, n = 10, formula = b ~ rank + (1|ID) + (1|Season))
+btPermFrank_pval <- (sum(btPermFrank$R >= abs(btM_Females_rank_glmm$R)) + sum(btPermFrank$R <= -abs(btM_Females_rank_glmm$R)))/10
 
 #Male betweenness
-btPermM <- nodePermGlmm(df = bMemales, n = 2, formula = bt ~ (1|ID) + (1|Season))
-btPermM_pval <- (sum(btPermM$R >= btM_Males_glmm$R) + 1)/(length(btPermM$R) + 1)
+btPermM <- nodePermGlmm(df = Males, n =10, formula = b ~ (1|ID) + (1|Season))
+btPermM_pval <- (sum(btPermM$R >= abs(btM_Males_glmm$R)) + sum(btPermM$R <= -abs(btM_Males_glmm$R)))/10
 
 #Male betweenness w/ rank
-btPermMrank <- nodePermGlmm(df = bMales, n = 2, formula = bt ~ (1|ID) + (1|Season))
-btPermMrank_pval <- (sum(btPermM$R >= btM_Males_glmm$R) + 1)/(length(btPermM$R) + 1)
+btPermMrank <- nodePermGlmm(df = Males, n = 10, formula = b ~ (1|ID) + (1|Season))
+btPermMrank_pval <- (sum(btPermMrank$R >= abs(btM_Males_rank_glmm$R)) + sum(btPermMrank$R <= -abs(btM_Males_rank_glmm$R)))/10
 
 #Eigenvector
-ecPerm <- nodePerm(df = EC, n = 2, forumla = EC.vector ~ (1|ID) + (1|Season))
-ecPerm_pval <- (sum(ecPerm$R >= egCent$R) + 1)/(length(ecPerm$R) + 1)
+ecPerm <- nodePerm(df = allMetrics, n = 10, formula = EC.vector ~ (1|ID) + (1|Season))
+ecPerm_pval <- (sum(ecPerm$R >= abs(egCent$R)) + sum(ecPerm$R <= -abs(egCent$R)))/10
 
 #Female eigenvector
-ecPermF <- nodePerm(df = ecFemales, n = 2, forumla = EC.vector ~ (1|ID) + (1|Season))
-ecPermF_pval <- (sum(ecPermF$R >= egCentF$R) + 1)/(length(ecPermF$R) + 1)
+ecPermF <- nodePerm(df = Females, n = 10, formula = EC.vector ~ (1|ID) + (1|Season))
+ecPermF_pval <- (sum(ecPermF$R >= abs(egCentF$R)) + sum(ecPermF$R <= -abs(egCentF$R)))/10
 
 #Female eigenvector w/ rank
-ecPermFrank <- nodePerm(df = ecFemales, n = 2, forumla = EC.vector ~ rank + (1|ID) + (1|Season))
-ecPermFrank_pval <- (sum(ecPermFrank$R >= egCentF_rank$R) + 1)/(length(ecPermFrank$R) + 1)
+ecPermFrank <- nodePerm(df = Females, n = 10, formula = EC.vector ~ rank + (1|ID) + (1|Season))
+ecPermFrank_pval <- (sum(ecPermFrank$R >= abs(egCentF_rank$R)) + sum(ecPermFrank$R <= -abs(egCentF_rank$R)))/10
 
 #Male eigenvector
-ecPermM <- nodePerm(df = ecMales, n = 2, forumla = logEC ~ (1|ID) + (1|Season))
-ecPermM_pval <- (sum(ecPermM$R >= egCentM_log$R) + 1)/(length(ecPermM$R) + 1)
+ecPermM <- nodePerm(df = Males, n = 10, formula = logEC ~ (1|ID) + (1|Season))
+ecPermM_pval <- (sum(ecPermM$R >= abs(egCentM_log$R)) + sum(ecPermM$R <= -abs(egCentM_log$R)))/10
 
 #Male eigenvector w/ rank
-ecPermFrank <- nodePerm(df = ecMales, n = 2, forumla = logEC ~ rank + (1|ID) + (1|Season))
-ecPermFrank_pval <- (sum(ecPermMrank$R >= egCentM_rank_log$R) + 1)/(length(ecPermMrank$R) + 1)
+ecPermMrank <- nodePerm(df = Males, n = 10, formula = logEC ~ rank + (1|ID) + (1|Season))
+ecPermMrank_pval <- (sum(ecPermMrank$R >= abs(egCentM_rank_log$R)) + sum(ecPermMrank$R <= -abs(egCentM_rank_log$R)))/10
 
 #Clustering Coefficient
-ccPerm <- nodePerm(df = CC, n = 2, formula = CC ~ (1|ID) + (1|Season))
-ccPerm_pval <- (sum(ccPerm$R >= ccM$R) + 1)/(length(ccPerm$R) + 1)
+ccPerm <- nodePerm(df = allMetrics, n = 10, formula = CC ~ (1|ID) + (1|Season))
+ccPerm_pval <- (sum(ccPerm$R >= abs(ccM$R)) + sum(ccPerm$R <= -abs(ccM$R)))/10
 
 #Female CC
-ccPermF <- nodePerm(df = CC_Females, n = 2, formula = CC ~ (1|ID) + (1|Season))
-ccPermF_pval <- (sum(ccPermF$R >= ccM_Females$R) + 1)/(length(ccPermF$R) + 1)
+ccPermF <- nodePerm(df = Females, n = 10, formula = CC ~ (1|ID) + (1|Season))
+ccPermF_pval <- (sum(ccPermF$R >= abs(ccM_Females$R)) + sum(ccPermF$R <= -abs(ccM_Females$R)))/10
 
 #Female CC w/ rank
-ccPermFrank <- nodePerm(df = CC_Females, n = 2, formula = CC ~ rank + (1|ID) + (1|Season))
-ccPermFrank_pval <- (sum(ccPermFrank$R >= ccM_Females_rank$R) + 1)/(length(ccPermFrank$R) + 1)
+ccPermFrank <- nodePerm(df = Females, n = 10, formula = CC ~ rank + (1|ID) + (1|Season))
+ccPermFrank_pval <- (sum(ccPermFrank$R >= abs(ccM_Females_rank$R)) + sum(ccPermFrank$R <= -abs(ccM_Females_rank$R)))/10
 
 #Male CC
-ccPermM <- nodePerm(df = CC_Males, n = 2, formula = CC ~ (1|ID) + (1|Season))
-ccPermM_pval <- (sum(ccPermM$R >= ccM_Males$R) + 1)/(length(ccPermM$R) + 1)
+ccPermM <- nodePerm(df = Males, n = 10, formula = CC ~ (1|ID) + (1|Season))
+ccPermM_pval <- (sum(ccPermM$R >= abs(ccM_Males$R)) + sum(ccPermM$R <= -abs(ccM_Males$R)))/10
 
 #Male CC w/ rank
-ccPermMrank <- nodePerm(df = CC_Males, n = 2, formula = CC ~ rank + (1|ID) + (1|Season))
-ccPermMrank_pval <- (sum(ccPermMrank$R >= ccM_Males_rank$R) + 1)/(length(ccPermMrank$R) + 1)
+ccPermMrank <- nodePerm(df = Males, n = 10, formula = CC ~ rank + (1|ID) + (1|Season))
+ccPermMrank_pval <- (sum(ccPermMrank$R >= abs(ccM_Males_rank$R)) + sum(ccPermMrank$R <= -abs(ccM_Males_rank$R)))/10
+
+allResults <- allResults |>
+  mutate(p = c(inDegPval, inDegPermF_pval, inDegPermFrank_pval, inDegPermM_pval, inDegPermMrank_pval, outDegPval, outDegPermF_pval, outDegPermFrank_pval, outDegPermM_pval, outDegPermMrank_pval, inStrengthPerm_pval, inStrengthPermF_pval, inStrengthPermFrank_pval, inStrengthPermM_pval, inStrengthPermMrank_pval, outStrengthPerm_pval, outStrengthPermF_pval, outStrengthPermFrank_pval, outStrengthPermM_pval, outStrengthPermMrank_pval, ecPerm_pval, ecPermF_pval, ecPermFrank_pval, ecPermM_pval, ecPermMrank_pval, ccPerm_pval, ccPermF_pval, ccPermFrank_pval, ccPermM_pval, ccPermMrank_pval, btPerm_pval, btPermF_pval, btPermFrank_pval, btPermM_pval, btPermMrank_pval))
+allResults
 
 
+network_metrics <- data.frame(In.Degree = allMetrics$In.Degree, Out.Degree = allMetrics$Out.Degree, In.Strength = allMetrics$In.Strength, Out.Strength = allMetrics$Out.Strength, Eigenvector = allMetrics$EC.vector, Cluster = allMetrics$CC, Between = allMetrics$b)
+spearCor <- cor(network_metrics, method = "spearman")
 
+spearCor_p <- cor_pmat(
+  data = network_metrics,
+  vars = NULL,
+  method = "spearman",
+  alternative = "two.sided",
+  conf.level = 0.95)
+
+spearCor
+spearCor_p
